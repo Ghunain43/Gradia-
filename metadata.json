@@ -1,0 +1,6 @@
+{
+  "name": "Gradia - AI Academic OS",
+  "description": "Premium AI Academic Operating System featuring intelligent course management, GPA & attendance calculators, Grade Rescue simulations, AI study notes, flashcards, scored quizzes, adaptive revision planning, and focus timer.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
