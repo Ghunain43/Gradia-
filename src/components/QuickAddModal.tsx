@@ -1,3 +1,4 @@
+import { useModalFocus } from '../utils/useModalFocus';
 import React, { useState } from 'react';
 import {
   BookOpen,
@@ -28,7 +29,7 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({ isOpen, onClose, o
   // Score state
   const [scoreCourseId, setScoreCourseId] = useState<string>(courses[0]?.id || '');
   const [scoreAssessmentId, setScoreAssessmentId] = useState<string>('');
-  const [scoreVal, setScoreVal] = useState<number>(90);
+  const [scoreVal, setScoreVal] = useState<number | ''>('');
   const [scoreSuccess, setScoreSuccess] = useState<string | null>(null);
 
   // Note state
@@ -36,11 +37,13 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({ isOpen, onClose, o
   const [noteCourseId, setNoteCourseId] = useState<string>(courses[0]?.id || '');
   const [noteContent, setNoteContent] = useState('');
 
+  const dialogRef = useModalFocus(isOpen, onClose);
   if (!isOpen) return null;
 
   const selectedScoreCourse = courses.find((c) => c.id === scoreCourseId) || courses[0];
 
   const handleRecordAttendance = (attended: boolean) => {
+    if (!courses.some(c => c.id === attCourseId)) return;
     quickRecordAttendance(attCourseId, attended);
     const crs = courses.find((c) => c.id === attCourseId);
     setAttSuccess(`Logged ${attended ? 'Attended (+1)' : 'Missed (+1)'} for ${crs?.code}`);
@@ -52,7 +55,8 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({ isOpen, onClose, o
 
   const handleSaveScore = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!scoreAssessmentId) return;
+    const assessment = selectedScoreCourse?.assessments.find(a => a.id === scoreAssessmentId);
+    if (!assessment || scoreVal === '' || scoreVal < 0 || scoreVal > assessment.maxScore) return;
     updateAssessmentScore(scoreCourseId, scoreAssessmentId, Number(scoreVal), true);
     setScoreSuccess('Assessment score saved and GPA updated!');
     setTimeout(() => {
@@ -74,23 +78,24 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({ isOpen, onClose, o
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in duration-150">
-      <div className="w-full max-w-lg rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xl p-6 space-y-5">
+    <div ref={dialogRef} role="dialog" aria-modal="true" aria-label="Quick add" tabIndex={-1} className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in duration-150">
+      <div className="glass-dialog w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xl p-6 space-y-5">
         
         {/* Header */}
         <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
           <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
             <Plus className="w-4 h-4 text-indigo-500" />
-            <span>Quick Academic Action</span>
+            <span>Add a little progress</span>
           </h3>
           <button
-            onClick={onClose}
+            onClick={onClose} aria-label="Close dialog"
             className="p-1 rounded text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
+        {!courses.length && <p className="text-sm">Add a course first to record attendance or marks. <button className="quiet-button" onClick={() => { onClose(); onNavigate('courses'); }}>Go to My courses</button></p>}
         {/* Mode Selector */}
         <div className="grid grid-cols-3 gap-1.5 p-1 bg-slate-100 dark:bg-slate-800/80 rounded-lg text-xs font-semibold">
           <button
@@ -134,10 +139,10 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({ isOpen, onClose, o
         {activeMode === 'attendance' && (
           <div className="space-y-4 pt-1">
             <div>
-              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+              <label htmlFor="QuickAddModal-field-1" className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
                 Select Course
               </label>
-              <select
+              <select id="QuickAddModal-field-1"
                 value={attCourseId}
                 onChange={(e) => setAttCourseId(e.target.value)}
                 className="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-mono"
@@ -182,10 +187,10 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({ isOpen, onClose, o
         {activeMode === 'score' && (
           <form onSubmit={handleSaveScore} className="space-y-4 pt-1">
             <div>
-              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+              <label htmlFor="QuickAddModal-field-2" className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
                 Select Course
               </label>
-              <select
+              <select id="QuickAddModal-field-2"
                 value={scoreCourseId}
                 onChange={(e) => {
                   setScoreCourseId(e.target.value);
@@ -202,17 +207,17 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({ isOpen, onClose, o
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+              <label htmlFor="QuickAddModal-field-3" className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
                 Assessment Item
               </label>
-              <select
+              <select id="QuickAddModal-field-3"
                 value={scoreAssessmentId}
                 onChange={(e) => {
                   setScoreAssessmentId(e.target.value);
                   const ass = selectedScoreCourse.assessments.find((a) => a.id === e.target.value);
                   if (ass && ass.currentScore !== undefined) {
                     setScoreVal(ass.currentScore);
-                  }
+                  } else setScoreVal('');
                 }}
                 required
                 className="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
@@ -227,15 +232,16 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({ isOpen, onClose, o
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+              <label htmlFor="QuickAddModal-field-4" className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
                 Score (out of max points)
               </label>
-              <input
+              <input id="QuickAddModal-field-4"
                 type="number"
                 min={0}
-                max={100}
+                max={selectedScoreCourse?.assessments.find(a => a.id === scoreAssessmentId)?.maxScore || 100}
+                required
                 value={scoreVal}
-                onChange={(e) => setScoreVal(Number(e.target.value))}
+                onChange={(e) => setScoreVal(e.target.value === '' ? '' : Number(e.target.value))}
                 className="w-full px-3 py-2 text-xs font-mono rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
               />
             </div>
@@ -261,10 +267,10 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({ isOpen, onClose, o
         {activeMode === 'note' && (
           <form onSubmit={handleSaveNote} className="space-y-4 pt-1">
             <div>
-              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+              <label htmlFor="QuickAddModal-field-5" className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
                 Note / Lecture Title
               </label>
-              <input
+              <input id="QuickAddModal-field-5"
                 type="text"
                 placeholder="e.g. Chapter 6: Vector Divergence & Maxwell Equations"
                 value={noteTitle}
@@ -275,10 +281,10 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({ isOpen, onClose, o
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+              <label htmlFor="QuickAddModal-field-6" className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
                 Course
               </label>
-              <select
+              <select id="QuickAddModal-field-6"
                 value={noteCourseId}
                 onChange={(e) => setNoteCourseId(e.target.value)}
                 className="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-mono"
@@ -292,10 +298,10 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({ isOpen, onClose, o
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+              <label htmlFor="QuickAddModal-field-7" className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
                 Lecture Content / Derivations
               </label>
-              <textarea
+              <textarea id="QuickAddModal-field-7"
                 rows={4}
                 placeholder="Paste key notes, concepts, or homework insights..."
                 value={noteContent}

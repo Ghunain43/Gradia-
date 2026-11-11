@@ -1,3 +1,4 @@
+import { gradeQuiz } from '../utils/quiz';
 import React, { useState } from 'react';
 import {
   AlertCircle,
@@ -26,7 +27,7 @@ import { useAcademic } from '../context/AcademicContext';
 import { DocumentNote, Flashcard, QuizQuestion } from '../types';
 import { extractTextFromPdf } from '../utils/pdfExtractor';
 
-export const StudyAIView: React.FC = () => {
+export const StudyAIView: React.FC<{ initialDocId?: string }> = ({ initialDocId }) => {
   const {
     documents,
     courses,
@@ -48,7 +49,7 @@ export const StudyAIView: React.FC = () => {
     askTutor,
   } = useAcademic();
 
-  const [selectedDocId, setSelectedDocId] = useState<string>(documents[0]?.id || '');
+  const [selectedDocId, setSelectedDocId] = useState<string>(initialDocId || documents[0]?.id || '');
   const [activeSubTab, setActiveSubTab] = useState<'summary' | 'flashcards' | 'quiz' | 'plan' | 'tutor'>('summary');
 
   // New Note Modal state
@@ -167,7 +168,8 @@ export const StudyAIView: React.FC = () => {
   // Trigger Gemini Quiz
   const handleGenerateQuiz = async () => {
     if (!selectedDoc) return;
-    await generateQuiz(selectedDoc.id, 5, 'Mixed');
+    const generated = await generateQuiz(selectedDoc.id, 5, 'Mixed');
+    if (!generated) return;
     setQuizActive(false);
     setQuizSubmitted(false);
     setQuizAnswers({});
@@ -175,29 +177,12 @@ export const StudyAIView: React.FC = () => {
 
   // Submit Quiz
   const handleGradeQuiz = () => {
-    if (!selectedDoc || !selectedDoc.quiz) return;
-    setQuizSubmitted(true);
-
-    let score = 0;
-    const weakTopics: string[] = [];
-
-    selectedDoc.quiz.forEach((q) => {
-      const selected = quizAnswers[q.id];
-      if (selected === q.correctIndex) {
-        score++;
-      } else {
-        if (q.topic) weakTopics.push(q.topic);
-      }
-    });
-
-    recordQuizResult({
-      courseId: selectedDoc.courseId,
-      docTitle: selectedDoc.title,
-      score,
-      total: selectedDoc.quiz.length,
-      percentage: Number(((score / selectedDoc.quiz.length) * 100).toFixed(1)),
-      weakTopics: Array.from(new Set(weakTopics)),
-    });
+    if (!selectedDoc?.quiz || quizSubmitted) return;
+    try {
+      const result = gradeQuiz(selectedDoc.quiz, quizAnswers);
+      recordQuizResult({ courseId: selectedDoc.courseId, docTitle: selectedDoc.title, ...result });
+      setQuizSubmitted(true);
+    } catch { return; }
   };
 
   // Socratic Tutor Send Message
@@ -215,7 +200,8 @@ export const StudyAIView: React.FC = () => {
         linkedCourse ? `${linkedCourse.code}: ${linkedCourse.name}` : 'General Academic',
         selectedDoc ? selectedDoc.title : 'Study Topic',
         query,
-        tutorMessages
+        tutorMessages,
+        selectedDoc?.content || ''
       );
       setTutorMessages((prev) => [...prev, { role: 'tutor', text: reply }]);
     } catch (err: any) {
@@ -229,17 +215,17 @@ export const StudyAIView: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="glass-page glass-page-StudyAIView space-y-6">
       
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200 dark:border-slate-800">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100 flex items-center gap-2">
+          <div className="glass-page-eyebrow">YOUR PERSONAL STUDY SPACE</div><h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100 flex items-center gap-2">
             <Sparkles className="w-6 h-6 text-violet-500" />
-            <span>AI Study & Knowledge Hub</span>
+            <span>Make sense of your notes</span>
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-            Gemini-powered executive summaries, active recall flashcards, scored MCQs, and adaptive revision schedules
+            Upload a lecture PDF or paste your notes. Choose how you want to learn.
           </p>
         </div>
 
@@ -252,9 +238,11 @@ export const StudyAIView: React.FC = () => {
         </button>
       </div>
 
+      <div className="study-steps" aria-label="How studying works"><div><b>01 / Bring your material</b><p>A searchable lecture PDF or pasted text works best. Scanned PDFs need text recognition first.</p></div><div><b>02 / Choose a study tool</b><p>Get the key ideas, practise with flashcards, or test yourself with a quiz.</p></div><div><b>03 / Build confidence</b><p>Review missed topics and make a revision plan. Check AI answers against your course notes.</p></div></div>
+      <p className="text-xs text-slate-500">When you generate study material, your notes are sent to Gemini. AI generation requires a configured server connection.</p>
       {/* Global Status / Loader */}
       {isGenerating && (
-        <div className="p-4 rounded-xl border border-indigo-300 dark:border-indigo-800 bg-indigo-50/70 dark:bg-indigo-950/30 flex items-center gap-3">
+        <div role="status" className="p-4 rounded-xl border border-indigo-300 dark:border-indigo-800 bg-indigo-50/70 dark:bg-indigo-950/30 flex items-center gap-3">
           <RefreshCw className="w-4 h-4 text-indigo-600 dark:text-indigo-400 animate-spin shrink-0" />
           <div className="text-xs text-indigo-900 dark:text-indigo-200 font-medium">
             {generationStatus || 'Connecting to Gemini model on server...'}
@@ -283,7 +271,7 @@ export const StudyAIView: React.FC = () => {
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
               <Upload className="w-4 h-4 text-indigo-500" />
-              <span>Upload or Paste Academic Lecture Material</span>
+              <span>Add your lecture notes</span>
             </h3>
             <button
               onClick={() => setIsUploading(false)}
@@ -296,10 +284,10 @@ export const StudyAIView: React.FC = () => {
           <form onSubmit={handleSaveDocument} className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+                <label htmlFor="StudyAIView-field-1" className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
                   Document / Lecture Title
                 </label>
-                <input
+                <input id="StudyAIView-field-1"
                   type="text"
                   placeholder="e.g. Chapter 4: Neural Backpropagation & Vector Gradients"
                   value={uploadTitle}
@@ -310,10 +298,10 @@ export const StudyAIView: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+                <label htmlFor="StudyAIView-field-2" className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
                   Associated Course
                 </label>
-                <select
+                <select id="StudyAIView-field-2"
                   value={uploadCourseId}
                   onChange={(e) => setUploadCourseId(e.target.value)}
                   className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-mono"
@@ -372,13 +360,13 @@ export const StudyAIView: React.FC = () => {
               <textarea
                 rows={6}
                 placeholder="Paste textbook excerpt, lecture notes, formula derivations, or syllabi here..."
-                value={uploadContent}
+                aria-label="Lecture notes text" value={uploadContent}
                 onChange={(e) => setUploadContent(e.target.value)}
                 required
                 className="w-full p-3 text-xs font-mono rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
               />
               <p className="text-[11px] text-slate-500 mt-1">
-                PDF text is extracted client-side with PDF.js and previewed above before saving. You can edit or augment notes before submitting to Gemini.
+                Review the extracted text before saving. You can correct or add to it here.
               </p>
             </div>
 
@@ -406,7 +394,7 @@ export const StudyAIView: React.FC = () => {
         
         {/* Left Sidebar (1 Col): Document / Material Library */}
         <div className="lg:col-span-1 space-y-4">
-          <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs">
+          <div className="glass-surface p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300">
                 Course Materials ({documents.length})
@@ -479,7 +467,7 @@ export const StudyAIView: React.FC = () => {
         <div className="lg:col-span-3 space-y-4">
           
           {selectedDoc ? (
-            <div className="p-5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs space-y-5">
+            <div className="glass-surface p-5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs space-y-5">
               
               {/* Document Header Bar */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100 dark:border-slate-800">
@@ -528,7 +516,7 @@ export const StudyAIView: React.FC = () => {
                 >
                   <span className="flex items-center gap-1.5">
                     <BookOpen className="w-3.5 h-3.5" />
-                    <span>Executive Summary</span>
+                    <span>Summary</span>
                   </span>
                 </button>
 
@@ -556,7 +544,7 @@ export const StudyAIView: React.FC = () => {
                 >
                   <span className="flex items-center gap-1.5">
                     <HelpCircle className="w-3.5 h-3.5" />
-                    <span>Scored MCQs ({selectedDoc.quiz?.length || 0})</span>
+                    <span>Practice quiz ({selectedDoc.quiz?.length || 0})</span>
                   </span>
                 </button>
 
@@ -570,7 +558,7 @@ export const StudyAIView: React.FC = () => {
                 >
                   <span className="flex items-center gap-1.5">
                     <ListChecks className="w-3.5 h-3.5" />
-                    <span>Adaptive Revision Plan</span>
+                    <span>Revision plan</span>
                   </span>
                 </button>
 
@@ -584,7 +572,7 @@ export const StudyAIView: React.FC = () => {
                 >
                   <span className="flex items-center gap-1.5">
                     <MessageSquare className="w-3.5 h-3.5" />
-                    <span>Socratic AI Tutor</span>
+                    <span>Ask a tutor</span>
                   </span>
                 </button>
               </div>
@@ -1044,7 +1032,7 @@ export const StudyAIView: React.FC = () => {
                         )}
 
                         <span className="text-[11px] text-slate-500 font-mono">
-                          Missed topics are automatically fed to the Adaptive Revision Planner.
+                          Missed topics are automatically fed to the Revision planner.
                         </span>
                       </div>
 
@@ -1065,7 +1053,7 @@ export const StudyAIView: React.FC = () => {
                         disabled={isGenerating}
                         className="px-4 py-2 text-xs font-semibold rounded-lg bg-indigo-600 text-white hover:bg-indigo-500 shadow-sm transition-colors"
                       >
-                        Generate 5 Scored MCQs with Gemini
+                        Generate 5 Practice quiz with Gemini
                       </button>
                     </div>
                   )}
@@ -1234,7 +1222,7 @@ export const StudyAIView: React.FC = () => {
                         disabled={isGenerating}
                         className="px-4 py-2 text-xs font-semibold rounded-lg bg-indigo-600 text-white hover:bg-indigo-500 shadow-sm transition-colors"
                       >
-                        Generate Adaptive Revision Plan with Gemini
+                        Generate Revision plan with Gemini
                       </button>
                     </div>
                   )}
@@ -1282,7 +1270,7 @@ export const StudyAIView: React.FC = () => {
                         <div className="w-6 h-6 rounded-full bg-violet-600 text-white flex items-center justify-center font-bold text-[10px] shrink-0">
                           G
                         </div>
-                        <div className="p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 text-slate-500 flex items-center gap-2">
+                        <div className="glass-surface p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 text-slate-500 flex items-center gap-2">
                           <RefreshCw className="w-3.5 h-3.5 animate-spin" />
                           <span>Tutor is formulating conceptual breakdown...</span>
                         </div>
@@ -1314,7 +1302,7 @@ export const StudyAIView: React.FC = () => {
 
             </div>
           ) : (
-            <div className="p-12 text-center rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+            <div className="glass-surface p-12 text-center rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
               <p className="text-xs text-slate-500">No documents found. Click "Upload Notes / PDF" above.</p>
             </div>
           )}

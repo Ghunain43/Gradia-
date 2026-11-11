@@ -1,0 +1,21 @@
+﻿import React, { useEffect, useState } from 'react';
+import { Plus, Pencil, Trash2, X } from 'lucide-react';
+export interface StudentTask { id: string; title: string; due: string; priority: 'Low' | 'Medium' | 'High'; done: boolean }
+export const TASK_KEY = 'gradia_student_tasks_v1';
+export function readTasks(): StudentTask[] {
+  const raw = localStorage.getItem(TASK_KEY);
+  if (!raw) return [];
+  const data = JSON.parse(raw);
+  if (!Array.isArray(data) || !data.every(t => t && typeof t.id === 'string' && typeof t.title === 'string' && typeof t.due === 'string' && ['Low','Medium','High'].includes(t.priority) && typeof t.done === 'boolean')) throw new Error('Saved tasks could not be read. Your original task data has been kept.');
+  return data;
+}
+export function TasksWidget() {
+  const [initial] = useState(() => {try {return {tasks:readTasks(), error:''};} catch {return {tasks:[], error:'Saved tasks are unavailable. Your original data has been kept.'};}});
+  const [tasks,setTasks] = useState<StudentTask[]>(initial.tasks);
+  const [error,setError] = useState(initial.error);
+  const [editing,setEditing] = useState<string | null>(null);
+  const [title,setTitle] = useState(''); const [due,setDue] = useState(''); const [priority,setPriority] = useState<StudentTask['priority']>('Medium');
+  useEffect(() => { if (initial.error) return; try {localStorage.setItem(TASK_KEY,JSON.stringify(tasks));setError('');} catch {setError('Changes are only available in this session because browser storage is unavailable.');} },[tasks,initial.error]);
+  const open = (task?: StudentTask) => {setEditing(task?.id || 'new');setTitle(task?.title || '');setDue(task?.due || '');setPriority(task?.priority || 'Medium');};
+  return <section className="fm-panel fm-tasks"><div className="fm-panel-heading"><h2>My tasks <span>{tasks.filter(t => !t.done).length}</span></h2><button className="icon-button" aria-label="Add task" disabled={!!initial.error} onClick={() => open()}><Plus size={19}/></button></div><p className="fm-muted">A little plan for a lighter day.</p>{error && <p role="alert" className="fm-task-error">{error}</p>}{editing !== null && <form className="fm-task-form" onSubmit={e => {e.preventDefault();if (!title.trim()) return; const task: StudentTask = {id:editing === 'new' ? crypto.randomUUID() : editing,title:title.trim(),due,priority,done:tasks.find(t=>t.id===editing)?.done || false};setTasks(editing === 'new' ? [...tasks,task] : tasks.map(t => t.id === editing ? task : t));setEditing(null);}}><label>Task<input autoFocus required maxLength={160} value={title} onChange={e => setTitle(e.target.value)} placeholder="What would you like to get done?"/></label><div><label>Due date<input type="date" value={due} onChange={e=>setDue(e.target.value)}/></label><label>Priority<select value={priority} onChange={e=>setPriority(e.target.value as StudentTask['priority'])}><option>Low</option><option>Medium</option><option>High</option></select></label></div><div><button className="fm-blue-button" type="submit">Save task</button><button type="button" className="quiet-button" onClick={()=>setEditing(null)}>Cancel</button></div></form>}<div className="fm-task-list">{tasks.map(t=><div className={`fm-task ${t.done ? 'done' : ''}`} key={t.id}><input type="checkbox" aria-label={`Complete ${t.title}`} checked={t.done} onChange={()=>setTasks(tasks.map(item=>item.id===t.id?{...item,done:!item.done}:item))}/><div><b>{t.title}</b><small><span className={`priority-${t.priority.toLowerCase()}`}>{t.priority}</span>{t.due ? new Date(`${t.due}T12:00:00`).toLocaleDateString(undefined,{month:'short',day:'numeric'}) : 'No due date'}</small></div><button className="fm-task-icon" aria-label={`Edit ${t.title}`} onClick={()=>open(t)}><Pencil size={14}/></button><button className="fm-task-icon" aria-label={`Delete ${t.title}`} onClick={()=>setTasks(tasks.filter(item=>item.id!==t.id))}><Trash2 size={14}/></button></div>)}{!tasks.length && !editing && <div className="fm-task-empty"><span>✓</span><b>Your day, your pace.</b><p>Add a task when you’re ready.<br/>Small steps count, too.</p></div>}</div>{editing === null && <button className="fm-add-task" disabled={!!initial.error} onClick={()=>open()}><Plus size={16}/> Add a task</button>}</section>;
+}

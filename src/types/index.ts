@@ -89,6 +89,7 @@ export interface Flashcard {
   topic: string;
   difficulty: 'Easy' | 'Medium' | 'Hard';
   rating?: 'again' | 'hard' | 'good' | 'easy';
+  status?: 'new' | 'learning' | 'mastered';
   lastReviewed?: string;
 }
 
@@ -157,6 +158,8 @@ export interface FocusSessionRecord {
 }
 
 export interface UserSettings {
+  studyGoal?: string;
+  profileMode?: 'personal' | 'demo';
   studentName: string;
   major: string;
   university: string;

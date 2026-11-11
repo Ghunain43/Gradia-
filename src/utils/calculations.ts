@@ -153,6 +153,8 @@ export interface CourseScoreSummary {
   maxPossiblePercentage: number; // earnedWeightPoints + remainingWeight (if 100% on remainder)
   letter: LetterGrade;
   gradePoints: number;
+  hasRecordedScores: boolean;
+  isValidConfiguration: boolean;
   isFullyCompleted: boolean;     // true if 100% of weight is completed
 }
 
@@ -163,8 +165,11 @@ export function calculateCourseScore(
   let earnedWeightPoints = 0;
   let completedWeight = 0;
 
+  const validAssessment = (a: Assessment) => Number.isFinite(a.weightPercent) && a.weightPercent >= 0 && a.weightPercent <= 100 && Number.isFinite(a.maxScore) && a.maxScore > 0 && (!a.completed || (Number.isFinite(a.currentScore) && a.currentScore! >= 0 && a.currentScore! <= a.maxScore));
+  const configuredWeight = course.assessments.reduce((sum, a) => sum + a.weightPercent, 0);
+  const isValidConfiguration = course.assessments.length > 0 && course.assessments.every(validAssessment) && Math.abs(configuredWeight - 100) < 0.000001;
   for (const item of course.assessments) {
-    if (item.completed && typeof item.currentScore === 'number' && item.maxScore > 0) {
+    if (validAssessment(item) && item.completed && typeof item.currentScore === 'number' && item.maxScore > 0) {
       completedWeight += item.weightPercent;
       earnedWeightPoints += (item.currentScore / item.maxScore) * item.weightPercent;
     }
@@ -172,9 +177,10 @@ export function calculateCourseScore(
 
   const remainingWeight = Math.max(0, 100 - completedWeight);
   // Current raw percentage on completed portion
-  const currentPercentage = completedWeight > 0 ? (earnedWeightPoints / completedWeight) * 100 : 100;
+  const currentPercentage = completedWeight > 0 ? (earnedWeightPoints / completedWeight) * 100 : 0;
   const maxPossiblePercentage = earnedWeightPoints + remainingWeight;
-  const isFullyCompleted = completedWeight >= 100;
+  const hasRecordedScores = completedWeight > 0 && course.assessments.every(validAssessment) && configuredWeight <= 100.000001;
+  const isFullyCompleted = isValidConfiguration && course.assessments.every(a => a.completed) && Math.abs(completedWeight - 100) < 0.000001;
 
   // Determine grade based on policy (raw percentage default)
   const { letter, gradePoints } = percentageToGrade(currentPercentage, policy);
@@ -188,11 +194,14 @@ export function calculateCourseScore(
     maxPossiblePercentage: Number(maxPossiblePercentage.toFixed(2)),
     letter,
     gradePoints,
+    hasRecordedScores,
+    isValidConfiguration,
     isFullyCompleted,
   };
 }
 
 export interface SemesterGpaSummary {
+  projectedCredits: number;
   projectedGpa: number;         // Projected GPA based on current scores across all courses
   finalizedGpa: number | null;  // Finalized GPA based only on 100% completed courses (null if none)
   totalCredits: number;         // Total enrolled credit hours
@@ -208,14 +217,19 @@ export function calculateSemesterGPA(
 ): SemesterGpaSummary {
   let totalCredits = 0;
   let totalQualityPoints = 0;
+  let projectedCredits = 0;
 
   let finalizedCredits = 0;
   let finalizedQualityPoints = 0;
 
   for (const course of courses) {
     const summary = calculateCourseScore(course, policy);
+    if (!Number.isFinite(course.credits) || course.credits <= 0) continue;
     totalCredits += course.credits;
-    totalQualityPoints += course.credits * summary.gradePoints;
+    if (summary.hasRecordedScores) {
+      projectedCredits += course.credits;
+      totalQualityPoints += course.credits * summary.gradePoints;
+    }
 
     if (summary.isFullyCompleted) {
       finalizedCredits += course.credits;
@@ -223,10 +237,11 @@ export function calculateSemesterGPA(
     }
   }
 
-  const projectedGpa = totalCredits > 0 ? totalQualityPoints / totalCredits : 0;
+  const projectedGpa = projectedCredits > 0 ? totalQualityPoints / projectedCredits : 0;
   const finalizedGpa = finalizedCredits > 0 ? finalizedQualityPoints / finalizedCredits : null;
 
   return {
+    projectedCredits,
     projectedGpa: Number(projectedGpa.toFixed(2)),
     finalizedGpa: finalizedGpa !== null ? Number(finalizedGpa.toFixed(2)) : null,
     totalCredits,
@@ -260,7 +275,8 @@ export function calculateCGPA(
   // Projected cumulative
   const totalCredits = priorCredits + semester.totalCredits;
   const totalQualityPoints = priorQualityPoints + semester.qualityPoints;
-  const projectedCgpa = totalCredits > 0 ? totalQualityPoints / totalCredits : semester.projectedGpa;
+  const projectedCredits = priorCredits + semester.projectedCredits;
+  const projectedCgpa = projectedCredits > 0 ? totalQualityPoints / projectedCredits : 0;
 
   // Finalized cumulative
   const finalizedCredits = priorCredits + semester.finalizedCredits;
@@ -433,7 +449,7 @@ export interface GradeRescueResult {
   remainingWeight: number;
   maxAchievablePercent: number;
   requiredAverageOnRemaining: number;
-  feasibility: 'already_secured' | 'feasible' | 'challenging' | 'extreme' | 'impossible';
+  feasibility: 'incomplete' | 'already_secured' | 'feasible' | 'challenging' | 'extreme' | 'impossible';
   summaryMessage: string;
 }
 
@@ -447,6 +463,8 @@ export function simulateGradeRescue(
   const earned = summary.earnedWeightPoints;
   const remaining = summary.remainingWeight;
   const maxAchievable = summary.maxPossiblePercentage;
+
+  if (!summary.isValidConfiguration) return { targetLetter, targetPercent, earnedWeightPoints: earned, remainingWeight: remaining, maxAchievablePercent: 0, requiredAverageOnRemaining: 0, feasibility: 'incomplete', summaryMessage: 'Complete a valid assessment plan totaling 100% with valid marks before using this forecast.' };
 
   if (remaining <= 0) {
     const isSecured = summary.currentPercentage >= targetPercent;

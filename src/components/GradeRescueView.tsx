@@ -46,7 +46,7 @@ export const GradeRescueView: React.FC<GradeRescueViewProps> = ({
     const map: { [courseId: string]: LetterGrade } = {};
     for (const c of courses) {
       const current = calculateCourseScore(c, settings.gradingPolicy);
-      map[c.id] = current.letter;
+      map[c.id] = current.hasRecordedScores ? current.letter : c.targetGrade;
     }
     return map;
   });
@@ -60,7 +60,7 @@ export const GradeRescueView: React.FC<GradeRescueViewProps> = ({
 
   // Compute what-if course grade with current assessment overrides
   const computeWhatIfCourseScore = () => {
-    if (!selectedCourse) return null;
+    if (!selectedCourse || !currentScore?.isValidConfiguration) return null;
     let earnedWeight = 0;
     let totalWeight = 0;
 
@@ -122,31 +122,22 @@ export const GradeRescueView: React.FC<GradeRescueViewProps> = ({
     const semesterPointsNeeded = Math.max(0, totalQualityPointsNeeded - priorQualityPoints);
     const requiredSemesterGpa = semesterCredits > 0 ? semesterPointsNeeded / semesterCredits : 3.8;
 
-    courses.forEach((c) => {
-      if (requiredSemesterGpa >= 3.85) {
-        updated[c.id] = 'A';
-      } else if (requiredSemesterGpa >= 3.5) {
-        updated[c.id] = c.credits >= 4 ? 'A' : 'A-';
-      } else if (requiredSemesterGpa >= 3.2) {
-        updated[c.id] = c.credits >= 4 ? 'A-' : 'B+';
-      } else if (requiredSemesterGpa >= 2.8) {
-        updated[c.id] = 'B';
-      } else {
-        updated[c.id] = 'B-';
-      }
-    });
+    const scale = [...(settings.gradingPolicy?.scale || STANDARD_GRADE_SCALE)].sort((a,b) => a.gradePoints - b.gradePoints);
+    const suggested = scale.find(grade => grade.gradePoints >= requiredSemesterGpa) || scale[scale.length - 1];
+    courses.forEach(c => { updated[c.id] = suggested.letter; });
 
     setProjectedGrades(updated);
   };
 
   const feasibilityStyles = {
+    incomplete: { badge: 'bg-slate-100 text-slate-600', label: 'Incomplete assessment plan' },
     already_secured: {
       badge: 'bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800',
-      label: 'Guaranteed Lock',
+      label: 'Target secured',
     },
     feasible: {
       badge: 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800',
-      label: 'High Feasibility',
+      label: 'Within reach',
     },
     challenging: {
       badge: 'bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-800',
@@ -154,26 +145,26 @@ export const GradeRescueView: React.FC<GradeRescueViewProps> = ({
     },
     extreme: {
       badge: 'bg-orange-50 dark:bg-orange-950/30 text-orange-600 dark:text-orange-400 border-orange-200 dark:border-orange-800',
-      label: 'Extreme Stretch',
+      label: 'Very demanding',
     },
     impossible: {
       badge: 'bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-800',
-      label: 'Mathematically Impossible',
+      label: 'Try a lower target',
     },
   };
 
   return (
-    <div className="space-y-6">
+    <div className="glass-page glass-page-GradeRescueView space-y-6">
       
       {/* Header bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200 dark:border-slate-800">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100 flex items-center gap-2">
+          <div className="glass-page-eyebrow">A CLEARER PATH FORWARD</div><h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100 flex items-center gap-2">
             <Calculator className="w-6 h-6 text-amber-500" />
-            <span>Grade Rescue "What-If" Simulator</span>
+            <span>A plan for the grade you want</span>
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-            Solve reverse target grades, compute required exam scores, and simulate semester CGPA trajectories
+            Choose a course and a target. See what you need on the work still to come.
           </p>
         </div>
 
@@ -182,22 +173,25 @@ export const GradeRescueView: React.FC<GradeRescueViewProps> = ({
           className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg bg-indigo-600 text-white hover:bg-indigo-500 transition-colors shadow-xs w-fit"
         >
           <Sparkles className="w-3.5 h-3.5" />
-          <span>Auto-Solve Target CGPA ({settings.targetCgpa.toFixed(2)})</span>
+          <span>Suggest a scenario for ({settings.targetCgpa.toFixed(2)})</span>
         </button>
       </div>
 
+      <div className="empty-note text-sm">Estimates use {settings.gradingPolicy?.name || 'your selected grading policy'} and the marks you have entered. Remaining assessment weights must match your course outline. These are planning scenarios, not promised results.</div>
+      <p className="text-xs text-slate-500">The suggested scenario uses your selected grade scale. Check the simulated result against your goal; a target may be out of reach. For courses without marks, the planner starts with an A as a what-if assumption.</p>
+      {!courses.length && <p>Add a course in My courses to begin planning.</p>}
       {/* Top Section: Course-Level Solver */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         {/* Left 2 Cols: Course Selector and Solver Engine */}
         <div className="lg:col-span-2 space-y-4">
           
-          <div className="p-5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs space-y-5">
+          <div className="glass-surface p-5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs space-y-5">
             
             {/* Course Selector Tabs */}
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
-                Select Course to Rescue
+                1. Choose your course
               </label>
               <div className="flex flex-wrap gap-2">
                 {courses.map((c) => (
@@ -226,15 +220,15 @@ export const GradeRescueView: React.FC<GradeRescueViewProps> = ({
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
                   <div>
                     <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
-                      Target Final Letter Grade for {selectedCourse.code}
+                      2. Choose a target for {selectedCourse.code}
                     </h3>
                     <p className="text-xs text-slate-500">
-                      Current: <span className="font-mono font-bold text-slate-800 dark:text-slate-200">{currentScore.letter} ({currentScore.currentPercentage}%)</span> with {currentScore.remainingWeight}% weight remaining
+                      Current: <span className="font-mono font-bold text-slate-800 dark:text-slate-200">{currentScore.hasRecordedScores ? `${currentScore.letter} (${currentScore.currentPercentage}%)` : 'No marks yet'}</span> with {currentScore.remainingWeight}% weight remaining
                     </p>
                   </div>
 
                   {/* Letter Grade Buttons from active policy */}
-                  <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+                  <div className="flex flex-wrap items-center gap-1.5 pb-1">
                     {(settings.gradingPolicy?.scale || STANDARD_GRADE_SCALE)
                       .filter((s) => s.letter !== 'F')
                       .map((grade) => (
@@ -298,7 +292,7 @@ export const GradeRescueView: React.FC<GradeRescueViewProps> = ({
                           ? 'text-amber-500'
                           : 'text-emerald-500'
                       }`}>
-                        {rescueAnalysis.requiredAverageOnRemaining}%
+                        {rescueAnalysis.feasibility === 'incomplete' ? 'N/A' : `${rescueAnalysis.requiredAverageOnRemaining}%`}
                       </div>
                       <div className="text-[11px] text-slate-500 font-mono">
                         across {rescueAnalysis.remainingWeight}% work
@@ -315,7 +309,7 @@ export const GradeRescueView: React.FC<GradeRescueViewProps> = ({
                       Points Needed: <span className="font-semibold text-slate-800 dark:text-slate-200">{Math.max(0, rescueAnalysis.targetPercent - rescueAnalysis.earnedWeightPoints).toFixed(1)} pts</span>
                     </div>
                     <div>
-                      Max Possible: <span className="font-semibold text-slate-800 dark:text-slate-200">{rescueAnalysis.maxAchievablePercent}%</span>
+                      Max Possible: <span className="font-semibold text-slate-800 dark:text-slate-200">{rescueAnalysis.feasibility === 'incomplete' ? 'N/A' : `${rescueAnalysis.maxAchievablePercent}%`}</span>
                     </div>
                   </div>
                 </div>
@@ -325,7 +319,7 @@ export const GradeRescueView: React.FC<GradeRescueViewProps> = ({
 
             {/* What-If Assessment Overrides Slider Box */}
             {selectedCourse && (
-              <div className="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-3">
+              <details className="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-3"><summary>3. Explore different assessment scores</summary><p className="text-xs text-slate-500">Scenario only: unrecorded marks start at 85%. Moving a slider does not change your saved marks.</p>
                 <div className="flex items-center justify-between">
                   <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300">
                     Interactive What-If Scenario for Upcoming Assignments
@@ -383,7 +377,7 @@ export const GradeRescueView: React.FC<GradeRescueViewProps> = ({
                         {/* Slider for upcoming tasks */}
                         {isUpcoming ? (
                           <input
-                            type="range"
+                            aria-label={`Simulated score for ${a.name}`} type="range"
                             min={0}
                             max={a.maxScore}
                             step={1}
@@ -419,7 +413,7 @@ export const GradeRescueView: React.FC<GradeRescueViewProps> = ({
                     </div>
                   </div>
                 )}
-              </div>
+              </details>
             )}
 
           </div>
@@ -428,13 +422,13 @@ export const GradeRescueView: React.FC<GradeRescueViewProps> = ({
 
         {/* Right 1 Col: Multi-Course Semester CGPA Planner */}
         <div className="space-y-4">
-          <div className="p-5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs space-y-4">
+          <div className="glass-surface p-5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs space-y-4">
             
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
                   <Target className="w-4 h-4 text-indigo-500" />
-                  <span>Semester CGPA Trajectory</span>
+                  <span>Explore your semester outcome</span>
                 </h3>
                 <p className="text-[11px] text-slate-500">
                   Target: {settings.targetCgpa.toFixed(2)} CGPA
@@ -471,7 +465,7 @@ export const GradeRescueView: React.FC<GradeRescueViewProps> = ({
                 </strong>
               </span>
               <span>
-                Current Projected:{' '}
+                Current estimate:{' '}
                 <strong className="font-mono text-slate-800 dark:text-slate-200">
                   {currentCgpa.projectedCgpa.toFixed(2)}
                 </strong>
@@ -483,7 +477,7 @@ export const GradeRescueView: React.FC<GradeRescueViewProps> = ({
               {simulatedCgpaResult.simulatedCgpa >= settings.targetCgpa ? (
                 <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-semibold">
                   <CheckCircle2 className="w-4 h-4 shrink-0" />
-                  <span>Goal Achieved! Cumulative target of {settings.targetCgpa.toFixed(2)} will be met with this trajectory.</span>
+                  <span>This scenario reaches your target of {settings.targetCgpa.toFixed(2)} if these grades are achieved.</span>
                 </div>
               ) : (
                 <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400 font-medium">
@@ -498,7 +492,7 @@ export const GradeRescueView: React.FC<GradeRescueViewProps> = ({
             {/* Quick Letter Grade Adjuster for each course */}
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2">
-                Projected Grades by Course:
+                Assumed grades by course:
               </label>
 
               <div className="space-y-2">

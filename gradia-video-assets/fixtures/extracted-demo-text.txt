@@ -1,0 +1,5 @@
+--- Page 1 ---
+Gradia demo notes: Logic gates  Demonstration material. Not an official university record.  1. Boolean values  Digital logic represents two states: 0 and 1. A truth table lists every input combination and its corresponding output.  2. AND and OR  An AND gate produces 1 only when both inputs are 1. An OR gate produces 1 when at least one input is 1. For inputs A=1 and B=0, AND produces 0 and OR produces 1.  Practice  Write truth tables for two-input AND and OR gates. Explain why their outputs differ for inputs 1 and 0.
+
+--- Page 2 ---
+Logic gates: recall and application  3. NOT and XOR  NOT reverses a single input: NOT 0 is 1 and NOT 1 is 0. XOR produces 1 when its two inputs are different, and 0 when they are the same.  4. A common misconception  OR and XOR are different when both inputs are 1. OR returns 1; XOR returns 0. Do not confuse inclusive OR with exclusive OR.  Review questions  What is AND(1,1)? What is XOR(1,1)? Which gate reverses one bit? Explain the difference between OR and XOR in your own words. End of two-page demonstration handout. All content is supplied for testing and narration.

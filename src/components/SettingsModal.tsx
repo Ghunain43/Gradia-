@@ -1,3 +1,4 @@
+import { useModalFocus } from '../utils/useModalFocus';
 import React, { useEffect, useState } from 'react';
 import {
   AlertCircle,
@@ -51,8 +52,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     importDataJson,
   } = useAcademic();
 
+  const [studyGoal, setStudyGoal] = useState(settings.studyGoal || 'Build a steady study habit');
   const [name, setName] = useState(settings.studentName);
-  const [faculty, setFaculty] = useState(settings.faculty || 'Faculty of Computing');
+  const [faculty, setFaculty] = useState(settings.faculty || '');
   const [major, setMajor] = useState(settings.major);
   const [university, setUniversity] = useState(settings.university);
   const [semester, setSemester] = useState(settings.currentSemester);
@@ -60,7 +62,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
   const [priorCgpa, setPriorCgpa] = useState(settings.priorCgpa);
   const [targetCgpa, setTargetCgpa] = useState(settings.targetCgpa);
   const [attendanceThreshold, setAttendanceThreshold] = useState(settings.defaultAttendanceThreshold);
-  const [activeModel, setActiveModel] = useState(settings.activeModel || 'gemini-3.8-flash');
+  const [activeModel, setActiveModel] = useState(settings.activeModel || '');
   const [theme, setTheme] = useState(settings.theme);
 
   // Grading Policy state
@@ -81,17 +83,21 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
   const [importNotice, setImportNotice] = useState<string | null>(null);
 
   // Health check state
+  const [availableModels, setAvailableModels] = useState<string[]>([]);
+  const [modelStatus, setModelStatus] = useState('Model access not verified.');
   const [apiHealth, setApiHealth] = useState<{ hasGeminiKey: boolean; model: string } | null>(null);
 
   useEffect(() => {
     if (isOpen) {
+      fetch('/api/gemini/models').then(r => r.json()).then(data => { setAvailableModels(data.models || []); setModelStatus(data.error || `Model access verified: ${data.model}. Generation quota is checked when you generate.`); }).catch(() => setModelStatus('Could not verify model access. Check your server connection.'));
       fetch('/api/health')
         .then((res) => res.json())
         .then((data) => setApiHealth(data))
-        .catch(() => setApiHealth({ hasGeminiKey: false, model: 'gemini-3.8-flash' }));
+        .catch(() => setApiHealth({ hasGeminiKey: false, model: '' }));
     }
   }, [isOpen]);
 
+  const dialogRef = useModalFocus(isOpen, onClose);
   if (!isOpen) return null;
 
   const handlePresetChange = (newPreset: PresetUniversity) => {
@@ -125,7 +131,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
   const activePolicyDraft: UniversityGradingPolicy = {
     preset,
     name: preset === 'maju_undergraduate' ? 'MAJU Undergraduate' : 'Custom University',
-    scale,
+    scale: [...scale].sort((a,b) => b.minPercent - a.minPercent),
     policyNoteDPlus,
     roundingMode,
     assessmentLimits,
@@ -136,6 +142,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     updateSettings({
+      studyGoal,
       studentName: name.trim(),
       faculty: faculty.trim(),
       major: major.trim(),
@@ -145,7 +152,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
       priorCgpa: Number(priorCgpa),
       targetCgpa: Number(targetCgpa),
       defaultAttendanceThreshold: Number(attendanceThreshold),
-      activeModel: activeModel.trim() || 'gemini-3.8-flash',
+      activeModel: activeModel.trim(),
       theme,
       gradingPolicy: activePolicyDraft,
     });
@@ -182,22 +189,22 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/75 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="w-full max-w-3xl max-h-[92vh] overflow-y-auto rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xl p-5 sm:p-6 space-y-6">
+    <div ref={dialogRef} role="dialog" aria-modal="true" aria-label="Settings" tabIndex={-1} className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/75 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="glass-dialog w-full max-w-3xl max-h-[92vh] overflow-y-auto rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xl p-5 sm:p-6 space-y-6">
         
         {/* Modal Header */}
         <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
           <div>
             <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
               <Award className="w-5 h-5 text-indigo-500" />
-              <span>Gradia Academic & University Policy Settings</span>
+              <span>Make Gradia yours</span>
             </h2>
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              Configure official MAJU Undergraduate or Custom grading policies, assessment weight limits, and GPA calibration
+              Your profile, grading rules, and saved data — all in one place.
             </p>
           </div>
           <button
-            onClick={onClose}
+            onClick={onClose} aria-label="Close dialog"
             className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
           >
             <X className="w-5 h-5" />
@@ -210,10 +217,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
             <Sparkles className="w-4 h-4 text-violet-500" />
             <div>
               <span className="font-semibold text-slate-900 dark:text-slate-100">
-                Server-Side Gemini Integration:
+                AI connection:
               </span>{' '}
               <span className="font-mono text-slate-600 dark:text-slate-400">
-                {apiHealth?.model || 'gemini-3.8-flash'}
+                {apiHealth?.model || 'Server default (unverified)'}
               </span>
             </div>
           </div>
@@ -222,11 +229,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
             {apiHealth?.hasGeminiKey ? (
               <span className="text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
                 <CheckCircle2 className="w-3.5 h-3.5" />
-                <span>API Key Connected</span>
+                <span>Server key configured (access checked separately)</span>
               </span>
             ) : (
               <span className="text-amber-500 font-semibold">
-                Running in Demo / Check Secrets Panel
+                AI unavailable — server key needed
               </span>
             )}
           </div>
@@ -234,9 +241,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
 
         <form onSubmit={handleSave} className="space-y-6">
           
+          <nav className="settings-links" aria-label="Settings sections"><a href="#settings-profile">Profile</a><a href="#settings-results">Previous results</a><a href="#settings-policy">Grading rules</a><a href="#settings-data">Data & backups</a></nav>
           {/* Section 1: University Grading Policy & Presets */}
-          <div className="p-4 rounded-xl border border-indigo-200/80 dark:border-indigo-900/60 bg-indigo-50/20 dark:bg-indigo-950/20 space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <details id="settings-policy" className="p-4 rounded-xl border border-indigo-200/80 dark:border-indigo-900/60 bg-indigo-50/20 dark:bg-indigo-950/20 space-y-4">
+            <summary>Grading rules · {currentPolicy.name}</summary><div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div>
                 <h3 className="text-xs font-bold uppercase tracking-wider text-indigo-700 dark:text-indigo-300">
                   1. University Grading Policy Preset
@@ -476,10 +484,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
 
             {/* Configurable D+ Asterisk Policy Note */}
             <div className="p-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/80 space-y-1.5 text-xs">
-              <label className="block font-bold text-slate-800 dark:text-slate-200">
+              <label htmlFor="SettingsModal-field-1" className="block font-bold text-slate-800 dark:text-slate-200">
                 Official Footnote for D+ Grade Points (*)
               </label>
-              <textarea
+              <textarea id="SettingsModal-field-1"
                 rows={2}
                 value={policyNoteDPlus}
                 onChange={(e) => setPolicyNoteDPlus(e.target.value)}
@@ -572,20 +580,20 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
               </div>
             </div>
 
-          </div>
+          </details>
 
-          {/* Section 2: Student Identity */}
+          <span id="settings-profile" />{/* Section 2: Student Identity */}
           <div className="space-y-3">
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-              2. Student Identity & Program
+              Your profile
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
               <div>
-                <label className="block font-medium text-slate-700 dark:text-slate-300 mb-1">
+                <label htmlFor="SettingsModal-field-2" className="block font-medium text-slate-700 dark:text-slate-300 mb-1">
                   Student Name
                 </label>
-                <input
+                <input id="SettingsModal-field-2"
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
@@ -594,10 +602,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
               </div>
 
               <div>
-                <label className="block font-medium text-slate-700 dark:text-slate-300 mb-1">
+                <label htmlFor="SettingsModal-field-3" className="block font-medium text-slate-700 dark:text-slate-300 mb-1">
                   Faculty / Academic Division
                 </label>
-                <input
+                <input id="SettingsModal-field-3"
                   type="text"
                   value={faculty}
                   onChange={(e) => setFaculty(e.target.value)}
@@ -607,10 +615,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
               </div>
 
               <div>
-                <label className="block font-medium text-slate-700 dark:text-slate-300 mb-1">
+                <label htmlFor="SettingsModal-field-4" className="block font-medium text-slate-700 dark:text-slate-300 mb-1">
                   Major / Degree Program
                 </label>
-                <input
+                <input id="SettingsModal-field-4"
                   type="text"
                   value={major}
                   onChange={(e) => setMajor(e.target.value)}
@@ -619,10 +627,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
               </div>
 
               <div>
-                <label className="block font-medium text-slate-700 dark:text-slate-300 mb-1">
+                <label htmlFor="SettingsModal-field-5" className="block font-medium text-slate-700 dark:text-slate-300 mb-1">
                   University Name
                 </label>
-                <input
+                <input id="SettingsModal-field-5"
                   type="text"
                   value={university}
                   onChange={(e) => setUniversity(e.target.value)}
@@ -631,10 +639,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
               </div>
 
               <div>
-                <label className="block font-medium text-slate-700 dark:text-slate-300 mb-1">
+                <label htmlFor="SettingsModal-field-6" className="block font-medium text-slate-700 dark:text-slate-300 mb-1">
                   Current Term / Semester
                 </label>
-                <input
+                <input id="SettingsModal-field-6"
                   type="text"
                   value={semester}
                   onChange={(e) => setSemester(e.target.value)}
@@ -643,34 +651,36 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
               </div>
 
               <div>
-                <label className="block font-medium text-slate-700 dark:text-slate-300 mb-1">
+                <label htmlFor="SettingsModal-field-7" className="block font-medium text-slate-700 dark:text-slate-300 mb-1">
                   Active Gemini AI Model
                 </label>
-                <select
+                <select id="SettingsModal-field-7"
                   value={activeModel}
                   onChange={(e) => setActiveModel(e.target.value)}
                   className="w-full px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-mono"
                 >
-                  <option value="gemini-3.8-flash">gemini-3.8-flash (Recommended / Balanced)</option>
-                  <option value="gemini-2.5-flash">gemini-2.5-flash (Fast)</option>
-                  <option value="gemini-2.5-pro">gemini-2.5-pro (Deep Reasoning)</option>
+                  <option value="">Server default (auto-discovered)</option>
+                  {activeModel && !availableModels.includes(activeModel) && <option value={activeModel}>{activeModel} (saved; unverified)</option>}
+                  {availableModels.map(model => <option key={model} value={model}>{model}</option>)}
                 </select>
+                <p role="status" className="text-xs mt-2">{modelStatus}</p>
               </div>
             </div>
           </div>
 
-          {/* Section 3: GPA & Cumulative Calibration */}
+          <label className="block text-sm">My study goal<select value={studyGoal} onChange={e => setStudyGoal(e.target.value)} className="block w-full p-3 mt-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800"><option>Build a steady study habit</option><option>Improve my grades</option><option>Stay on top of attendance</option></select></label>
+          <span id="settings-results" />{/* Section 3: GPA & Cumulative Calibration */}
           <div className="space-y-3 pt-4 border-t border-slate-100 dark:border-slate-800">
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-              3. GPA History & Attendance Rules
+              Previous results & attendance
             </h3>
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
               <div>
-                <label className="block font-medium text-slate-700 dark:text-slate-300 mb-1">
+                <label htmlFor="SettingsModal-field-8" className="block font-medium text-slate-700 dark:text-slate-300 mb-1">
                   Prior Completed Credits
                 </label>
-                <input
+                <input id="SettingsModal-field-8"
                   type="number"
                   min={0}
                   max={250}
@@ -681,10 +691,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
               </div>
 
               <div>
-                <label className="block font-medium text-slate-700 dark:text-slate-300 mb-1">
+                <label htmlFor="SettingsModal-field-9" className="block font-medium text-slate-700 dark:text-slate-300 mb-1">
                   Previous CGPA
                 </label>
-                <input
+                <input id="SettingsModal-field-9"
                   type="number"
                   step="0.01"
                   min={0}
@@ -696,10 +706,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
               </div>
 
               <div>
-                <label className="block font-medium text-slate-700 dark:text-slate-300 mb-1">
+                <label htmlFor="SettingsModal-field-10" className="block font-medium text-slate-700 dark:text-slate-300 mb-1">
                   Target CGPA Goal
                 </label>
-                <input
+                <input id="SettingsModal-field-10"
                   type="number"
                   step="0.01"
                   min={0}
@@ -711,10 +721,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
               </div>
 
               <div>
-                <label className="block font-medium text-slate-700 dark:text-slate-300 mb-1">
+                <label htmlFor="SettingsModal-field-11" className="block font-medium text-slate-700 dark:text-slate-300 mb-1">
                   Attendance Min Threshold %
                 </label>
-                <input
+                <input id="SettingsModal-field-11"
                   type="number"
                   min={50}
                   max={100}
@@ -729,7 +739,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
           {/* Section 4: Theme preference */}
           <div className="space-y-3 pt-4 border-t border-slate-100 dark:border-slate-800">
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-              4. Appearance
+              Appearance
             </h3>
             <div className="flex items-center gap-3">
               <button
@@ -763,7 +773,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
           <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100 dark:border-slate-800">
             <button
               type="button"
-              onClick={onClose}
+              onClick={onClose} aria-label="Close dialog"
               className="px-4 py-2 text-xs font-medium rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100"
             >
               Cancel
@@ -772,15 +782,15 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
               type="submit"
               className="px-5 py-2 text-xs font-semibold rounded-lg bg-indigo-600 text-white hover:bg-indigo-500 shadow-sm"
             >
-              Save Calibration & Policy
+              Save settings
             </button>
           </div>
         </form>
 
-        {/* Section 5: Data Management & Backup */}
+        <span id="settings-data" />{/* Section 5: Data Management & Backup */}
         <div className="space-y-3 pt-5 border-t border-slate-100 dark:border-slate-800">
           <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-            Persistent Data Storage & Backup
+            Your data & backups
           </h3>
 
           <div className="flex flex-wrap items-center gap-3">
@@ -813,7 +823,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
             <textarea
               rows={2}
               placeholder="Paste JSON backup bundle here to restore state..."
-              value={importJsonText}
+              aria-label="Gradia backup JSON to import" value={importJsonText}
               onChange={(e) => setImportJsonText(e.target.value)}
               className="w-full p-2 text-xs font-mono rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
             />

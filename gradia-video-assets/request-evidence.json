@@ -1,0 +1,27 @@
+[
+  {
+    "route": "summarize",
+    "contentCharacters": 1131,
+    "containsFixtureText": true
+  },
+  {
+    "route": "flashcards",
+    "contentCharacters": 1131,
+    "containsFixtureText": true
+  },
+  {
+    "route": "quiz",
+    "contentCharacters": 1131,
+    "containsFixtureText": true
+  },
+  {
+    "route": "revision-plan",
+    "contentCharacters": 0,
+    "containsFixtureText": false
+  },
+  {
+    "route": "tutor",
+    "contentCharacters": 1131,
+    "containsFixtureText": true
+  }
+]

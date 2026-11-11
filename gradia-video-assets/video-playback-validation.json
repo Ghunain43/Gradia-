@@ -1,0 +1,37 @@
+[
+  {
+    "file": "recordings/01-dashboard-navigation.webm",
+    "played": true,
+    "seekCompleted": true
+  },
+  {
+    "file": "recordings/02-adding-task.webm",
+    "played": true,
+    "seekCompleted": true
+  },
+  {
+    "file": "recordings/03-course-management.webm",
+    "played": true,
+    "seekCompleted": true
+  },
+  {
+    "file": "recordings/04-grade-rescue-simulation.webm",
+    "played": true,
+    "seekCompleted": true
+  },
+  {
+    "file": "recordings/05-pdf-upload-ai-error.webm",
+    "played": true,
+    "seekCompleted": true
+  },
+  {
+    "file": "recordings/06-quiz-and-revision.webm",
+    "played": true,
+    "seekCompleted": true
+  },
+  {
+    "file": "recordings/07-focus-timer.webm",
+    "played": true,
+    "seekCompleted": true
+  }
+]

@@ -1,4 +1,6 @@
+import { hasSavedAcademicData, NEW_STUDENT_SETTINGS } from '../utils/onboarding';
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { readAcademicField, STORAGE_KEYS, validateAcademicImport } from '../utils/academicStorage';
 import {
   AcademicSummary,
   Assessment,
@@ -81,94 +83,19 @@ interface AcademicContextType {
   generateFlashcards: (docId: string, count?: number, topic?: string) => Promise<Flashcard[] | null>;
   generateQuiz: (docId: string, count?: number, difficulty?: string, topic?: string) => Promise<QuizQuestion[] | null>;
   generateAdaptiveRevisionPlan: (daysAvailable?: number, dailyHours?: number) => Promise<RevisionPlan | null>;
-  askTutor: (courseName: string, topic: string, query: string, history?: any[]) => Promise<string>;
+  askTutor: (courseName: string, topic: string, query: string, history?: any[], content?: string) => Promise<string>;
 }
 
 const AcademicContext = createContext<AcademicContextType | undefined>(undefined);
 
-const STORAGE_KEYS = {
-  COURSES: 'gradia_courses_v3',
-  DOCUMENTS: 'gradia_documents_v3',
-  QUIZ_RESULTS: 'gradia_quiz_results_v3',
-  REVISION_PLAN: 'gradia_revision_plan_v3',
-  FOCUS_HISTORY: 'gradia_focus_history_v3',
-  SETTINGS: 'gradia_settings_v3',
-};
-
 export const AcademicProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [courses, setCourses] = useState<Course[]>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEYS.COURSES);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0 && !parsed.some((c: any) => c.name?.includes('Consensus'))) {
-          return parsed;
-        }
-      }
-      return INITIAL_COURSES;
-    } catch {
-      return INITIAL_COURSES;
-    }
-  });
-
-  const [documents, setDocuments] = useState<DocumentNote[]>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEYS.DOCUMENTS);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-      }
-      return INITIAL_DOCUMENTS;
-    } catch {
-      return INITIAL_DOCUMENTS;
-    }
-  });
-
-  const [quizResults, setQuizResults] = useState<QuizResult[]>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEYS.QUIZ_RESULTS);
-      return saved ? JSON.parse(saved) : INITIAL_QUIZ_RESULTS;
-    } catch {
-      return INITIAL_QUIZ_RESULTS;
-    }
-  });
-
-  const [revisionPlan, setRevisionPlan] = useState<RevisionPlan | null>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEYS.REVISION_PLAN);
-      return saved ? JSON.parse(saved) : INITIAL_REVISION_PLAN;
-    } catch {
-      return INITIAL_REVISION_PLAN;
-    }
-  });
-
-  const [focusHistory, setFocusHistory] = useState<FocusSessionRecord[]>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEYS.FOCUS_HISTORY);
-      return saved ? JSON.parse(saved) : INITIAL_FOCUS_HISTORY;
-    } catch {
-      return INITIAL_FOCUS_HISTORY;
-    }
-  });
-
-  const [settings, setSettings] = useState<UserSettings>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEYS.SETTINGS);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (parsed.studentName === 'Alex Mercer') {
-          return INITIAL_USER_SETTINGS;
-        }
-        if (!parsed.gradingPolicy) {
-          parsed.gradingPolicy = DEFAULT_MAJU_POLICY;
-        }
-        return parsed;
-      }
-      return INITIAL_USER_SETTINGS;
-    } catch {
-      return INITIAL_USER_SETTINGS;
-    }
-  });
+  const [existingProfile] = useState(hasSavedAcademicData);
+  const [courses, setCourses] = useState<Course[]>(() => readAcademicField('courses', []));
+  const [documents, setDocuments] = useState<DocumentNote[]>(() => readAcademicField('documents', []));
+  const [quizResults, setQuizResults] = useState<QuizResult[]>(() => readAcademicField('quizResults', []));
+  const [revisionPlan, setRevisionPlan] = useState<RevisionPlan | null>(() => readAcademicField('revisionPlan', null));
+  const [focusHistory, setFocusHistory] = useState<FocusSessionRecord[]>(() => readAcademicField('focusHistory', []));
+  const [settings, setSettings] = useState<UserSettings>(() => readAcademicField('settings', NEW_STUDENT_SETTINGS));
 
   // Tour & Modal states
   const [howWorksOpen, setHowWorksOpen] = useState<boolean>(false);
@@ -184,39 +111,37 @@ export const AcademicProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   // Sync state to local storage
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEYS.COURSES, JSON.stringify(courses));
+      localStorage.setItem(STORAGE_KEYS.courses, JSON.stringify(courses));
     } catch {}
   }, [courses]);
 
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEYS.DOCUMENTS, JSON.stringify(documents));
+      localStorage.setItem(STORAGE_KEYS.documents, JSON.stringify(documents));
     } catch {}
   }, [documents]);
 
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEYS.QUIZ_RESULTS, JSON.stringify(quizResults));
+      localStorage.setItem(STORAGE_KEYS.quizResults, JSON.stringify(quizResults));
     } catch {}
   }, [quizResults]);
 
   useEffect(() => {
     try {
-      if (revisionPlan) {
-        localStorage.setItem(STORAGE_KEYS.REVISION_PLAN, JSON.stringify(revisionPlan));
-      }
+      localStorage.setItem(STORAGE_KEYS.revisionPlan, JSON.stringify(revisionPlan));
     } catch {}
   }, [revisionPlan]);
 
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEYS.FOCUS_HISTORY, JSON.stringify(focusHistory));
+      localStorage.setItem(STORAGE_KEYS.focusHistory, JSON.stringify(focusHistory));
     } catch {}
   }, [focusHistory]);
 
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
+      localStorage.setItem(STORAGE_KEYS.settings, JSON.stringify(settings));
       if (settings.theme === 'dark') {
         document.documentElement.classList.add('dark');
       } else {
@@ -229,7 +154,7 @@ export const AcademicProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const addCourse = (courseData: Omit<Course, 'id'>) => {
     const newCourse: Course = {
       ...courseData,
-      id: `course-${Date.now()}`,
+      id: `course-${crypto.randomUUID()}`,
     };
     setCourses((prev) => [...prev, newCourse]);
   };
@@ -410,7 +335,7 @@ export const AcademicProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setQuizResults(INITIAL_QUIZ_RESULTS);
     setRevisionPlan(INITIAL_REVISION_PLAN);
     setFocusHistory(INITIAL_FOCUS_HISTORY);
-    setSettings(INITIAL_USER_SETTINGS);
+    setSettings({ ...INITIAL_USER_SETTINGS, profileMode: 'demo' });
     setError(null);
   };
 
@@ -432,13 +357,14 @@ export const AcademicProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const importDataJson = (jsonStr: string): boolean => {
     try {
-      const parsed = JSON.parse(jsonStr);
-      if (Array.isArray(parsed.courses)) setCourses(parsed.courses);
-      if (Array.isArray(parsed.documents)) setDocuments(parsed.documents);
-      if (Array.isArray(parsed.quizResults)) setQuizResults(parsed.quizResults);
-      if (parsed.revisionPlan) setRevisionPlan(parsed.revisionPlan);
-      if (Array.isArray(parsed.focusHistory)) setFocusHistory(parsed.focusHistory);
-      if (parsed.settings) setSettings(parsed.settings);
+      // Validate the whole import before updating any state.
+      const parsed = validateAcademicImport(JSON.parse(jsonStr));
+      if (parsed.courses !== undefined) setCourses(parsed.courses);
+      if (parsed.documents !== undefined) setDocuments(parsed.documents);
+      if (parsed.quizResults !== undefined) setQuizResults(parsed.quizResults);
+      if (parsed.revisionPlan !== undefined) setRevisionPlan(parsed.revisionPlan);
+      if (parsed.focusHistory !== undefined) setFocusHistory(parsed.focusHistory);
+      if (parsed.settings !== undefined) setSettings(parsed.settings);
       return true;
     } catch (e: any) {
       setError(`Failed to import data: ${e.message}`);
@@ -463,12 +389,13 @@ export const AcademicProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     try {
       const res = await fetch('/api/gemini/summarize', {
         method: 'POST',
+        signal: AbortSignal.timeout(90000),
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           title: doc.title,
           courseName: course ? `${course.code}: ${course.name}` : 'General',
           content: doc.content,
-          model: settings.activeModel || 'gemini-3.8-flash',
+          model: settings.activeModel || undefined,
         }),
       });
 
@@ -479,8 +406,7 @@ export const AcademicProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
       const summary: AcademicSummary = await res.json();
       // Update document with summary
-      const updatedDoc = { ...doc, summary };
-      updateDocument(updatedDoc);
+      setDocuments(prev => prev.map(d => d.id === doc.id && d.content === doc.content ? { ...d, summary } : d));
       return summary;
     } catch (err: any) {
       console.error('Error generating summary:', err);
@@ -510,12 +436,13 @@ export const AcademicProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     try {
       const res = await fetch('/api/gemini/flashcards', {
         method: 'POST',
+        signal: AbortSignal.timeout(90000),
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           content: doc.content,
           count,
           topic,
-          model: settings.activeModel || 'gemini-3.8-flash',
+          model: settings.activeModel || undefined,
         }),
       });
 
@@ -527,13 +454,7 @@ export const AcademicProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       const data = await res.json();
       const newFlashcards: Flashcard[] = data.flashcards || [];
 
-      // Append or replace cards on document
-      const existing = doc.flashcards || [];
-      const updatedDoc = {
-        ...doc,
-        flashcards: [...newFlashcards, ...existing],
-      };
-      updateDocument(updatedDoc);
+      setDocuments(prev => prev.map(d => d.id === doc.id && d.content === doc.content ? { ...d, flashcards: [...newFlashcards, ...(d.flashcards || [])] } : d));
       return newFlashcards;
     } catch (err: any) {
       console.error('Error generating flashcards:', err);
@@ -564,13 +485,14 @@ export const AcademicProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     try {
       const res = await fetch('/api/gemini/quiz', {
         method: 'POST',
+        signal: AbortSignal.timeout(90000),
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           content: doc.content,
           count,
           difficulty,
           topic,
-          model: settings.activeModel || 'gemini-3.8-flash',
+          model: settings.activeModel || undefined,
         }),
       });
 
@@ -582,8 +504,7 @@ export const AcademicProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       const data = await res.json();
       const questions: QuizQuestion[] = data.questions || [];
 
-      const updatedDoc = { ...doc, quiz: questions };
-      updateDocument(updatedDoc);
+      setDocuments(prev => prev.map(d => d.id === doc.id && d.content === doc.content ? { ...d, quiz: questions } : d));
       return questions;
     } catch (err: any) {
       console.error('Error generating quiz:', err);
@@ -604,8 +525,6 @@ export const AcademicProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       new Set(quizResults.flatMap((r) => r.weakTopics).filter(Boolean))
     );
 
-    // If no quiz weaknesses yet, gather topics from documents
-    const fallbackTopics = allWeakTopics.length > 0 ? allWeakTopics : ['Core Exam Review', 'High-Credit Theorems'];
 
     setIsGenerating(true);
     setGenerationStatus('Gemini is computing cognitive pacing and optimizing your revision schedule...');
@@ -626,13 +545,15 @@ export const AcademicProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
       const res = await fetch('/api/gemini/revision-plan', {
         method: 'POST',
+        signal: AbortSignal.timeout(90000),
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          weakTopics: fallbackTopics,
+          weakTopics: allWeakTopics,
+          studyTopics: documents.map(d => d.title),
           courses: courseSummaries,
           daysAvailable,
           dailyHours,
-          model: settings.activeModel || 'gemini-3.8-flash',
+          model: settings.activeModel || undefined,
         }),
       });
 
@@ -665,19 +586,22 @@ export const AcademicProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     courseName: string,
     topic: string,
     query: string,
-    history: any[] = []
+    history: any[] = [],
+    content: string = ''
   ): Promise<string> => {
     setError(null);
     try {
       const res = await fetch('/api/gemini/tutor', {
         method: 'POST',
+        signal: AbortSignal.timeout(90000),
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           courseName,
           topic,
           query,
           conversationHistory: history,
-          model: settings.activeModel || 'gemini-3.8-flash',
+          content,
+          model: settings.activeModel || undefined,
         }),
       });
 

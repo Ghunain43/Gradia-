@@ -1,3 +1,4 @@
+import { useModalFocus } from '../utils/useModalFocus';
 import React from 'react';
 import {
   ArrowRight,
@@ -23,6 +24,7 @@ export const GuidedTourOverlay: React.FC<GuidedTourOverlayProps> = ({
 }) => {
   const { guidedTourActive, setGuidedTourActive, tourStep, setTourStep } = useAcademic();
 
+  const dialogRef = useModalFocus(guidedTourActive, () => setGuidedTourActive(false));
   if (!guidedTourActive) return null;
 
   const steps = [
@@ -30,10 +32,10 @@ export const GuidedTourOverlay: React.FC<GuidedTourOverlayProps> = ({
       step: 1,
       targetTab: 'dashboard' as const,
       badge: 'Step 1 of 6',
-      title: 'Academic Command Center',
+      title: 'Your semester at a glance',
       icon: Compass,
       description:
-        'Welcome to Gradia! This dashboard gives you an instant bird’s-eye view of your cumulative CGPA (4.00), semester standing across all 17 enrolled credits, attendance risk thresholds, and active courses.',
+        'See your completed results, estimated semester performance, attendance, and a suggested next step based on your saved records.',
       highlightText: 'Notice how Finalized GPA and Projected GPA are cleanly separated.',
       actionLabel: 'Next: Explore Grade Rescue',
     },
@@ -89,7 +91,7 @@ export const GuidedTourOverlay: React.FC<GuidedTourOverlayProps> = ({
       icon: Brain,
       description:
         'Switch to the "Adaptive Plan" tab. Gemini synthesizes your diagnosed weak topics with your course credit weights into an actionable multi-day study schedule with spaced retrieval techniques.',
-      highlightText: 'Tour complete! You are ready to deliver a standout hackathon presentation.',
+      highlightText: 'You’re ready. Start with one course, one set of notes, or one focus session.',
       actionLabel: 'Finish Tour & Explore',
     },
   ];

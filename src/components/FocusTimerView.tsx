@@ -24,7 +24,7 @@ const MODE_DURATIONS: { [key in TimerMode]: number } = {
   longbreak: 15 * 60,
 };
 
-export const FocusTimerView: React.FC = () => {
+export const FocusTimerView: React.FC<{ compact?: boolean }> = ({ compact = false }) => {
   const { courses, focusHistory, recordFocusSession } = useAcademic();
 
   const [mode, setMode] = useState<TimerMode>('pomodoro');
@@ -46,53 +46,45 @@ export const FocusTimerView: React.FC = () => {
     };
   }, [ambientSound, ambientVolume]);
 
-  // Handle countdown
+  // Use wall-clock time so background tabs do not slow the countdown.
+  const endAt = useRef<number | null>(null);
+  const recordRef = useRef(recordFocusSession);
+  recordRef.current = recordFocusSession;
   useEffect(() => {
-    if (isRunning) {
-      timerRef.current = window.setInterval(() => {
-        setTimeLeft((prev) => {
-          if (prev <= 1) {
-            clearInterval(timerRef.current!);
-            setIsRunning(false);
-            sound.playChime();
-
-            // Record completed session
-            const durationMins = Math.round(MODE_DURATIONS[mode] / 60);
-            recordFocusSession({
-              courseId: selectedCourseId,
-              mode,
-              durationMinutes: durationMins,
-            });
-
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    } else {
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
+    if (!isRunning) return;
+    if (!endAt.current) endAt.current = Date.now() + timeLeft * 1000;
+    const tick = () => {
+      const remaining = Math.max(0, Math.ceil((endAt.current! - Date.now()) / 1000));
+      setTimeLeft(remaining);
+      if (remaining === 0) {
+        endAt.current = null;
+        setIsRunning(false);
+        if (timerRef.current) clearInterval(timerRef.current);
+        sound.playChime();
+        recordRef.current({ courseId: selectedCourseId || undefined, mode, durationMinutes: MODE_DURATIONS[mode] / 60 });
       }
-    }
-
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
     };
+    timerRef.current = window.setInterval(tick, 250);
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, [isRunning, mode, selectedCourseId]);
 
   const switchMode = (newMode: TimerMode) => {
+    endAt.current = null;
     setIsRunning(false);
     setMode(newMode);
     setTimeLeft(MODE_DURATIONS[newMode]);
   };
 
   const resetTimer = () => {
+    endAt.current = null;
     setIsRunning(false);
     setTimeLeft(MODE_DURATIONS[mode]);
   };
 
   const toggleTimer = () => {
     sound.playClick();
+    endAt.current = null;
+    if (!isRunning && timeLeft === 0) setTimeLeft(MODE_DURATIONS[mode]);
     setIsRunning(!isRunning);
   };
 
@@ -106,22 +98,24 @@ export const FocusTimerView: React.FC = () => {
   const progressPercent = ((totalDuration - timeLeft) / totalDuration) * 100;
 
   // Stats today
-  const todayStr = new Date().toISOString().split('T')[0];
-  const todaySessions = focusHistory.filter((s) => s.completedAt.startsWith(todayStr));
+  const todayStr = new Date().toDateString();
+  const todaySessions = focusHistory.filter((s) => new Date(s.completedAt).toDateString() === todayStr && (s.mode === 'pomodoro' || s.mode === 'deepwork'));
   const todayMinutes = todaySessions.reduce((acc, s) => acc + s.durationMinutes, 0);
 
+  if (compact) return <section className="fm-timer"><div className="fm-panel-heading"><h2>A moment to focus</h2><Clock size={19}/></div><p>One task. A little less distraction.</p><select aria-label="Focus session course" value={selectedCourseId} disabled={isRunning} onChange={e => setSelectedCourseId(e.target.value)}><option value="">Any subject</option>{courses.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select><div className="fm-hourglass" aria-hidden="true">⌛</div><div className="fm-timer-time" role="timer" aria-label="Time remaining">{timeFormatted}</div><small>{mode === 'pomodoro' ? '25-minute study session' : mode === 'deepwork' ? '50-minute study session' : 'A little break'}</small><div className="fm-timer-actions"><button className="fm-timer-start" onClick={toggleTimer}>{isRunning ? <Pause size={16}/> : <Play size={16}/>} {isRunning ? 'Pause' : timeLeft < totalDuration && timeLeft > 0 ? 'Resume' : 'Start focus'}</button><button className="icon-button" aria-label="Reset timer" onClick={resetTimer}><RotateCcw size={18}/></button></div></section>;
+
   return (
-    <div className="space-y-6">
+    <div className="glass-page glass-page-FocusTimerView space-y-6">
       
       {/* Header bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200 dark:border-slate-800">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100 flex items-center gap-2">
+          <div className="glass-page-eyebrow">MAKE SPACE FOR DEEP WORK</div><h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100 flex items-center gap-2">
             <Clock className="w-6 h-6 text-sky-500" />
-            <span>Deep Work Chamber & Focus Timer</span>
+            <span>One thing at a time.</span>
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-            Synthesized ambient noise, customizable cognitive intervals, and course study logging
+            Choose a course, settle in, and give yourself a little uninterrupted time.
           </p>
         </div>
 
@@ -139,10 +133,10 @@ export const FocusTimerView: React.FC = () => {
         
         {/* Left 2 Cols: Timer Display & Controls */}
         <div className="lg:col-span-2 space-y-4">
-          <div className="p-8 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm flex flex-col items-center justify-center text-center relative overflow-hidden">
+          <div className="glass-surface p-8 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm flex flex-col items-center justify-center text-center relative overflow-hidden">
             
             {/* Mode Selector Buttons */}
-            <div className="flex items-center gap-1 p-1 bg-slate-100 dark:bg-slate-800/80 rounded-lg mb-8">
+            <div className="flex flex-wrap justify-center items-center gap-1 p-1 bg-slate-100 dark:bg-slate-800/80 rounded-lg mb-8">
               <button
                 onClick={() => switchMode('pomodoro')}
                 className={`px-3.5 py-1.5 text-xs font-semibold rounded-md transition-colors whitespace-nowrap cursor-pointer ${
@@ -255,7 +249,7 @@ export const FocusTimerView: React.FC = () => {
             <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
               <span>Logging session for:</span>
               <select
-                value={selectedCourseId}
+                aria-label="Course for this focus session" disabled={isRunning} value={selectedCourseId}
                 onChange={(e) => setSelectedCourseId(e.target.value)}
                 className="px-2 py-1 rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-mono"
               >
@@ -270,25 +264,25 @@ export const FocusTimerView: React.FC = () => {
           </div>
         </div>
 
-        {/* Right 1 Col: Ambient Audio Synthesizer & Focus Atmosphere */}
+        {/* Right 1 Col: Find your background sound & Focus Atmosphere */}
         <div className="space-y-4">
           
           {/* Ambient Sound Card */}
-          <div className="p-5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs space-y-4">
+          <div className="glass-surface p-5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Headphones className="w-4 h-4 text-indigo-500" />
                 <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
-                  Ambient Audio Synthesizer
+                  Find your background sound
                 </h3>
               </div>
               <span className="text-[11px] font-mono text-emerald-600 dark:text-emerald-400">
-                Web Audio API
+                Optional
               </span>
             </div>
 
             <p className="text-xs text-slate-600 dark:text-slate-400">
-              Zero external files. Real-time procedural sound waves to shield you from distractions:
+              Choose a gentle sound, or keep things quiet.
             </p>
 
             {/* Sound Buttons */}
@@ -347,7 +341,7 @@ export const FocusTimerView: React.FC = () => {
               <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center gap-3 text-xs">
                 <Volume2 className="w-4 h-4 text-slate-500 shrink-0" />
                 <input
-                  type="range"
+                  aria-label="Background sound volume" type="range"
                   min="0.1"
                   max="1.0"
                   step="0.05"
@@ -365,20 +359,20 @@ export const FocusTimerView: React.FC = () => {
           {/* Atmospheric Photo Card */}
           <div className="relative rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800">
             <img
-              src="/src/assets/images/gradia_focus_ambient_1794400205321.jpg"
+              src={new URL('../assets/images/gradia_focus_ambient_1794400205321.jpg', import.meta.url).href}
               alt="Deep focus study desk"
               referrerPolicy="no-referrer"
               className="w-full h-44 object-cover brightness-75"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/30 to-transparent p-4 flex flex-col justify-end">
               <span className="text-[10px] font-mono uppercase tracking-wider text-indigo-300">
-                Cognitive Flow
+                Room to breathe
               </span>
               <h4 className="text-sm font-bold text-white mt-0.5">
-                The Science of 50-Minute Ultradian Cycles
+                Take a break. Come back fresh.
               </h4>
               <p className="text-[11px] text-slate-300 mt-1">
-                Rest 10 minutes between deep blocks to consolidate long-term memory schemas.
+                Step away from your screen between sessions. Find a rhythm that works for you.
               </p>
             </div>
           </div>

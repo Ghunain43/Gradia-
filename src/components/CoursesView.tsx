@@ -44,7 +44,7 @@ export const CoursesView: React.FC<CoursesViewProps> = ({
     addCourse,
   } = useAcademic();
 
-  const [expandedCourseId, setExpandedCourseId] = useState<string | null>(courses[0]?.id || null);
+  const [expandedCourseId, setExpandedCourseId] = useState<string | null>(null);
   const [isAddingCourse, setIsAddingCourse] = useState<boolean>(false);
   const [newCourseCode, setNewCourseCode] = useState('');
   const [newCourseName, setNewCourseName] = useState('');
@@ -75,15 +75,11 @@ export const CoursesView: React.FC<CoursesViewProps> = ({
       color: 'indigo',
       targetGrade: newCourseTargetGrade,
       attendance: {
-        totalClasses: 12,
-        attendedClasses: 12,
+        totalClasses: 0,
+        attendedClasses: 0,
         minThresholdPercent: settings.defaultAttendanceThreshold || 75,
       },
-      assessments: [
-        { id: `ass-${Date.now()}-1`, name: 'Midterm Examination', category: 'midterm', weightPercent: 25, maxScore: 100, currentScore: 88, completed: true },
-        { id: `ass-${Date.now()}-2`, name: 'Assignments / Quizzes', category: 'coursework', weightPercent: 30, maxScore: 100, currentScore: 92, completed: true },
-        { id: `ass-${Date.now()}-3`, name: 'Final Comprehensive Exam', category: 'final', weightPercent: 45, maxScore: 100, completed: false, dueDate: 'End of Term' },
-      ],
+      assessments: [],
     });
 
     setIsAddingCourse(false);
@@ -95,7 +91,7 @@ export const CoursesView: React.FC<CoursesViewProps> = ({
   };
 
   const handleCreateAssessment = (courseId: string) => {
-    if (!newAssName || newAssWeight <= 0) return;
+    if (!newAssName.trim() || newAssWeight <= 0 || newAssWeight > 100 || newAssMaxScore <= 0) return;
 
     addAssessment(courseId, {
       name: newAssName.trim(),
@@ -113,16 +109,16 @@ export const CoursesView: React.FC<CoursesViewProps> = ({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="glass-page glass-page-CoursesView space-y-6">
       
       {/* Header bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200 dark:border-slate-800">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
-            Course Management & Assessment Auditing
+          <div className="glass-page-eyebrow">YOUR SEMESTER, ORGANISED</div><h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
+            My courses
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-            Track syllabus grading weights, live assessment scores, and attendance risk thresholds
+            Your marks, attendance, and next steps. Open a course to update its details.
           </p>
         </div>
 
@@ -140,7 +136,7 @@ export const CoursesView: React.FC<CoursesViewProps> = ({
         <div className="p-5 rounded-xl border border-indigo-200 dark:border-indigo-900/60 bg-indigo-50/40 dark:bg-slate-900/90 shadow-md">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
-              Add New Academic Course
+              Add a course
             </h3>
             <button
               onClick={() => setIsAddingCourse(false)}
@@ -152,10 +148,10 @@ export const CoursesView: React.FC<CoursesViewProps> = ({
 
           <form onSubmit={handleCreateCourse} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
-              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+              <label htmlFor="CoursesView-field-1" className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
                 Course Code
               </label>
-              <input
+              <input id="CoursesView-field-1"
                 type="text"
                 placeholder="e.g. CS 301"
                 value={newCourseCode}
@@ -166,10 +162,10 @@ export const CoursesView: React.FC<CoursesViewProps> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+              <label htmlFor="CoursesView-field-2" className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
                 Course Name
               </label>
-              <input
+              <input id="CoursesView-field-2"
                 type="text"
                 placeholder="e.g. Distributed Systems"
                 value={newCourseName}
@@ -180,10 +176,10 @@ export const CoursesView: React.FC<CoursesViewProps> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+              <label htmlFor="CoursesView-field-3" className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
                 Credits
               </label>
-              <input
+              <input id="CoursesView-field-3"
                 type="number"
                 min={1}
                 max={12}
@@ -194,15 +190,15 @@ export const CoursesView: React.FC<CoursesViewProps> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+              <label htmlFor="CoursesView-field-4" className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
                 Target Grade
               </label>
-              <select
+              <select id="CoursesView-field-4"
                 value={newCourseTargetGrade}
                 onChange={(e) => setNewCourseTargetGrade(e.target.value as LetterGrade)}
                 className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-mono"
               >
-                {STANDARD_GRADE_SCALE.map((g) => (
+                {(settings.gradingPolicy?.scale || STANDARD_GRADE_SCALE).map((g) => (
                   <option key={g.letter} value={g.letter}>
                     {g.letter} ({g.gradePoints.toFixed(1)} GP)
                   </option>
@@ -211,10 +207,10 @@ export const CoursesView: React.FC<CoursesViewProps> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+              <label htmlFor="CoursesView-field-5" className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
                 Instructor
               </label>
-              <input
+              <input id="CoursesView-field-5"
                 type="text"
                 placeholder="e.g. Prof. David Karger"
                 value={newCourseInstructor}
@@ -224,10 +220,10 @@ export const CoursesView: React.FC<CoursesViewProps> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+              <label htmlFor="CoursesView-field-6" className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
                 Room / Location
               </label>
-              <input
+              <input id="CoursesView-field-6"
                 type="text"
                 placeholder="e.g. Gates Hall 304"
                 value={newCourseRoom}
@@ -237,10 +233,10 @@ export const CoursesView: React.FC<CoursesViewProps> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+              <label htmlFor="CoursesView-field-7" className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
                 Schedule
               </label>
-              <input
+              <input id="CoursesView-field-7"
                 type="text"
                 placeholder="e.g. Mon, Wed 10:00 - 11:30 AM"
                 value={newCourseSchedule}
@@ -277,16 +273,16 @@ export const CoursesView: React.FC<CoursesViewProps> = ({
           return (
             <div
               key={course.id}
-              className={`rounded-xl border transition-all ${
+              className={`glass-surface rounded-xl border transition-all ${
                 isExpanded
                   ? 'border-indigo-300 dark:border-indigo-800/80 bg-white dark:bg-slate-900 shadow-sm'
                   : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-slate-300 dark:hover:border-slate-700'
               }`}
             >
               {/* Collapsed / Header Bar */}
-              <div
+              <button type="button" aria-expanded={isExpanded} aria-label={`Manage ${course.name}`}
                 onClick={() => setExpandedCourseId(isExpanded ? null : course.id)}
-                className="p-4 cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                className="w-full text-left p-5 cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-4"
               >
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 font-mono font-bold text-xs flex items-center justify-center shrink-0">
@@ -320,10 +316,10 @@ export const CoursesView: React.FC<CoursesViewProps> = ({
                   <div className="text-right">
                     <div className="flex items-baseline gap-1.5 justify-end">
                       <span className="text-xl font-bold font-mono text-slate-900 dark:text-slate-100">
-                        {score.letter}
+                        {score.hasRecordedScores ? score.letter : '—'}
                       </span>
                       <span className="text-xs font-mono text-slate-500 dark:text-slate-400">
-                        ({score.currentPercentage}%)
+                        {score.hasRecordedScores ? `(${score.currentPercentage}%)` : 'No marks yet'}
                       </span>
                     </div>
                     <div className="text-[11px] text-slate-500 font-mono">
@@ -335,7 +331,7 @@ export const CoursesView: React.FC<CoursesViewProps> = ({
                     {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
                   </div>
                 </div>
-              </div>
+              </button>
 
               {/* Expanded Details Body */}
               {isExpanded && (
@@ -348,20 +344,20 @@ export const CoursesView: React.FC<CoursesViewProps> = ({
                         <div className="flex items-center gap-2">
                           <UserCheck className="w-4 h-4 text-indigo-500" />
                           <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-900 dark:text-slate-200">
-                            Attendance Threshold Engine
+                            Your attendance
                           </h4>
                           <span className="text-xs text-slate-500 font-mono">
                             (Min: {course.attendance.minThresholdPercent}%)
                           </span>
                         </div>
                         <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
-                          {attendance.isAtRisk ? (
+                          {!course.attendance.totalClasses ? <span>Record your first class to see your attendance.</span> : attendance.isAtRisk ? (
                             <span className="text-amber-600 dark:text-amber-400 font-semibold">
-                              Critical: Must attend next {attendance.neededConsecutive} consecutive classes to reach {course.attendance.minThresholdPercent}%.
+                              Attend the next {attendance.neededConsecutive} consecutive classes to reach {course.attendance.minThresholdPercent}%.
                             </span>
                           ) : (
                             <span className="text-emerald-600 dark:text-emerald-400 font-medium">
-                              Safe standing: You can miss {attendance.safeToMiss} more {attendance.safeToMiss === 1 ? 'class' : 'classes'} safely.
+                              At your current minimum, you can miss {attendance.safeToMiss} more {attendance.safeToMiss === 1 ? 'class' : 'classes'} safely.
                             </span>
                           )}
                         </p>
@@ -374,7 +370,7 @@ export const CoursesView: React.FC<CoursesViewProps> = ({
                             {course.attendance.attendedClasses} / {course.attendance.totalClasses}
                           </div>
                           <div className="text-[11px] font-mono text-slate-500">
-                            {attendance.percentage}% Rate
+                            {course.attendance.totalClasses ? `${attendance.percentage}% attendance` : 'No classes recorded'}
                           </div>
                         </div>
 
@@ -387,7 +383,7 @@ export const CoursesView: React.FC<CoursesViewProps> = ({
                                   attendance: {
                                     ...course.attendance,
                                     attendedClasses: course.attendance.attendedClasses - 1,
-                                    totalClasses: Math.max(1, course.attendance.totalClasses - 1),
+                                    totalClasses: Math.max(0, course.attendance.totalClasses - 1),
                                   },
                                 });
                               }
@@ -436,12 +432,12 @@ export const CoursesView: React.FC<CoursesViewProps> = ({
                   {/* Assessments Table & Policy Compliance */}
                   <div className="space-y-3">
                     {/* MAJU / Policy Weight Validation Banner */}
-                    {!weightValidation.isValid ? (
-                      <div className="p-3.5 rounded-xl border border-amber-300/80 dark:border-amber-700/60 bg-amber-50/60 dark:bg-amber-950/30 text-xs">
-                        <div className="flex items-center gap-2 font-bold text-amber-900 dark:text-amber-200 mb-1">
+                    {course.assessments.length === 0 ? <p className="empty-note">Add assessments from your course outline. Their weights should add up to 100%.</p> : !weightValidation.isValid ? (
+                      <details className="p-3.5 rounded-xl border border-amber-300/80 dark:border-amber-700/60 bg-amber-50/60 dark:bg-amber-950/30 text-xs">
+                        <summary className="flex items-center gap-2 font-bold text-amber-900 dark:text-amber-200 mb-1">
                           <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
-                          <span>{settings.gradingPolicy?.name || 'MAJU'} Assessment Weightage Policy Warning</span>
-                        </div>
+                          <span>{settings.gradingPolicy?.name || 'MAJU'} weights need review — see details</span>
+                        </summary>
                         <ul className="list-disc list-inside space-y-0.5 text-[11px] text-amber-800 dark:text-amber-300">
                           {weightValidation.warnings.map((w, idx) => (
                             <li key={idx}>{w}</li>
@@ -457,7 +453,7 @@ export const CoursesView: React.FC<CoursesViewProps> = ({
                           <span>·</span>
                           <span>Total: <strong className="text-slate-900 dark:text-slate-100">{weightValidation.breakdown.total}%</strong> (target: 100%)</span>
                         </div>
-                      </div>
+                      </details>
                     ) : (
                       <div className="p-2.5 rounded-lg border border-emerald-200 dark:border-emerald-900/60 bg-emerald-50/30 dark:bg-emerald-950/20 text-xs text-emerald-800 dark:text-emerald-300 flex flex-wrap items-center justify-between font-mono">
                         <div className="flex items-center gap-1.5 font-medium">
@@ -522,12 +518,12 @@ export const CoursesView: React.FC<CoursesViewProps> = ({
                                 {a.completed ? (
                                   <div className="flex items-center justify-end gap-1.5">
                                     <input
-                                      type="number"
+                                      aria-label={`Score for ${a.name}`} type="number"
                                       min={0}
                                       max={a.maxScore}
                                       value={a.currentScore ?? ''}
                                       onChange={(e) =>
-                                        updateAssessmentScore(course.id, a.id, Number(e.target.value), true)
+                                        e.target.value !== '' && e.target.validity.valid && updateAssessmentScore(course.id, a.id, Number(e.target.value), true)
                                       }
                                       className="w-16 px-1.5 py-0.5 text-right font-mono font-semibold rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
                                     />
@@ -536,16 +532,17 @@ export const CoursesView: React.FC<CoursesViewProps> = ({
                                     </span>
                                   </div>
                                 ) : (
-                                  <span className="text-slate-400 italic">Pending</span>
+                                  <input aria-label={`Score for ${a.name}`} type="number" min={0} max={a.maxScore} placeholder="Mark" className="w-20 p-2 border border-slate-300 dark:border-slate-700 rounded" onChange={e => { if (e.target.value !== '' && e.target.validity.valid) updateAssessmentScore(course.id, a.id, Number(e.target.value), true); }} />
                                 )}
                               </td>
                               <td className="py-2.5 px-3 text-center">
                                 <button
+                                  disabled={!a.completed && a.currentScore === undefined}
                                   onClick={() =>
                                     updateAssessmentScore(
                                       course.id,
                                       a.id,
-                                      a.currentScore ?? a.maxScore * 0.9,
+                                      a.currentScore ?? 0,
                                       !a.completed
                                     )
                                   }
@@ -555,7 +552,7 @@ export const CoursesView: React.FC<CoursesViewProps> = ({
                                       : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
                                   }`}
                                 >
-                                  {a.completed ? 'Completed' : 'Mark Done'}
+                                  {a.completed ? 'Recorded · undo' : 'Enter a mark'}
                                 </button>
                               </td>
                               <td className="py-2.5 px-3 text-right">
@@ -586,7 +583,7 @@ export const CoursesView: React.FC<CoursesViewProps> = ({
                         <div className="flex items-center gap-1.5 text-xs">
                           <span>Category:</span>
                           <select
-                            value={newAssCategory}
+                            aria-label="Assessment category" value={newAssCategory}
                             onChange={(e) => setNewAssCategory(e.target.value as AssessmentCategory)}
                             className="px-2 py-1 text-xs font-mono rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
                           >
@@ -601,7 +598,7 @@ export const CoursesView: React.FC<CoursesViewProps> = ({
                             type="number"
                             min={1}
                             max={100}
-                            value={newAssWeight}
+                            aria-label="Assessment weight percent" value={newAssWeight}
                             onChange={(e) => setNewAssWeight(Number(e.target.value))}
                             className="w-16 px-2 py-1 text-xs font-mono rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
                           />
@@ -611,7 +608,7 @@ export const CoursesView: React.FC<CoursesViewProps> = ({
                           <input
                             type="number"
                             min={1}
-                            value={newAssMaxScore}
+                            aria-label="Assessment maximum score" value={newAssMaxScore}
                             onChange={(e) => setNewAssMaxScore(Number(e.target.value))}
                             className="w-16 px-2 py-1 text-xs font-mono rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
                           />

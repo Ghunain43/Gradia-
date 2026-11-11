@@ -1,3 +1,4 @@
+import { useModalFocus } from '../utils/useModalFocus';
 import React, { useState } from 'react';
 import {
   BookOpen,
@@ -45,6 +46,7 @@ export const HowGradiaWorksModal: React.FC<HowGradiaWorksModalProps> = ({
       : 0;
   const isImpossible = requiredAvg > 100;
 
+  const dialogRef = useModalFocus(isOpen, onClose);
   if (!isOpen) return null;
 
   const questions = [
@@ -63,8 +65,8 @@ export const HowGradiaWorksModal: React.FC<HowGradiaWorksModalProps> = ({
   ];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="w-full max-w-4xl h-[90vh] flex flex-col rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xl overflow-hidden">
+    <div ref={dialogRef} role="dialog" aria-modal="true" aria-label="How Gradia works" tabIndex={-1} className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200">
+      <div className="glass-dialog w-full max-w-4xl h-[90vh] flex flex-col rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xl overflow-hidden">
         
         {/* Header */}
         <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between shrink-0 bg-slate-50/50 dark:bg-slate-900/50">
@@ -96,7 +98,7 @@ export const HowGradiaWorksModal: React.FC<HowGradiaWorksModalProps> = ({
               </button>
             )}
             <button
-              onClick={onClose}
+              onClick={onClose} aria-label="Close dialog"
               className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
             >
               <X className="w-5 h-5" />

@@ -1,3 +1,5 @@
+import { OnboardingView } from './components/OnboardingView';
+import { hasSavedAcademicData } from './utils/onboarding';
 /**
  * @license
  * SPDX-License-Identifier: Apache-2.0
@@ -19,12 +21,16 @@ import { GuidedTourOverlay } from './components/GuidedTourOverlay';
 type ActiveTab = 'dashboard' | 'courses' | 'rescue' | 'study' | 'focus';
 
 function MainApp() {
+  const [setupOpen, setSetupOpen] = useState(() => { try { return !hasSavedAcademicData() && localStorage.getItem('gradia_setup_done') !== 'true'; } catch { return false; } });
+  const finishSetup = () => { try { localStorage.setItem('gradia_setup_done', 'true'); } catch {} setSetupOpen(false); };
   const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
+  const [studyDocId, setStudyDocId] = useState<string | undefined>();
   const [rescueCourseId, setRescueCourseId] = useState<string | undefined>();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isQuickAddOpen, setIsQuickAddOpen] = useState(false);
 
   const {
+    settings,
     howWorksOpen,
     setHowWorksOpen,
     setGuidedTourActive,
@@ -37,11 +43,14 @@ function MainApp() {
   };
 
   const handleNavigateToStudy = (docId?: string) => {
+    setStudyDocId(docId);
     setActiveTab('study');
   };
 
+  if (setupOpen) return <OnboardingView onFinish={finishSetup} />;
+
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col transition-colors selection:bg-indigo-500/20 selection:text-indigo-600 dark:selection:text-indigo-300">
+    <div className="fm-shell min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col transition-colors selection:bg-indigo-500/20 selection:text-indigo-600 dark:selection:text-indigo-300">
       
       {/* Top Bar Contract (3 zones) */}
       <Navbar
@@ -52,7 +61,8 @@ function MainApp() {
       />
 
       {/* Main Viewport Container */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 md:py-8">
+      <a className="skip-link" href="#main-content">Skip to content</a><main id="main-content" tabIndex={-1} className={`fm-main ${activeTab === 'dashboard' ? 'fm-dashboard-grid' : ''}`}>
+        <p className="text-xs text-slate-600 dark:text-slate-300" style={{gridColumn:'1 / -1'}} role="note">{settings.profileMode === 'demo' ? 'Demo mode: course names, credits, profile and supplied attendance are confirmed. Marks, assessment dates, rooms, schedules, study history and AI examples are sample data; predictions use those samples. Attendance counts approximate the supplied percentages.' : 'Academic estimates depend on your recorded marks. Legacy or imported sample records are not verified university results.'}</p>
         {activeTab === 'dashboard' && (
           <DashboardView
             onNavigate={setActiveTab}
@@ -74,9 +84,9 @@ function MainApp() {
           />
         )}
 
-        {activeTab === 'study' && <StudyAIView />}
+        {activeTab === 'study' && <StudyAIView initialDocId={studyDocId} />}
 
-        {activeTab === 'focus' && <FocusTimerView />}
+        <div className={activeTab === 'dashboard' ? 'fm-timer-slot' : ''} hidden={activeTab !== 'focus' && activeTab !== 'dashboard'}><FocusTimerView compact={activeTab === 'dashboard'} /></div>
       </main>
 
       {/* Clean Footer adhering to anti-slop rules (no fake engines or mock telemetry) */}
@@ -85,9 +95,9 @@ function MainApp() {
           <div className="flex items-center gap-2">
             <span className="font-semibold text-slate-800 dark:text-slate-200">Gradia</span>
             <span aria-hidden="true">·</span>
-            <span>AI Academic Operating System</span>
+            <span>Your academic companion</span>
             <span aria-hidden="true">·</span>
-            <span>Version 2.4</span>
+            <button onClick={() => setHowWorksOpen(true)}>How it Works</button><button onClick={() => { setGuidedTourActive(true); setTourStep(1); setActiveTab('dashboard'); }}>Tour</button>
           </div>
 
           <div className="flex items-center gap-4">
@@ -109,14 +119,14 @@ function MainApp() {
               onClick={() => setActiveTab('focus')}
               className="hover:text-slate-900 dark:hover:text-slate-200 transition-colors"
             >
-              Focus Chamber
+              Focus Timer
             </button>
           </div>
         </div>
       </footer>
 
       {/* Global Modals */}
-      <SettingsModal
+      <SettingsModal key={String(isSettingsOpen)}
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
       />

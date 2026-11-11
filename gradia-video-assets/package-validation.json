@@ -1,0 +1,420 @@
+{
+  "screenshots": 54,
+  "recordings": 7,
+  "scenes": 28,
+  "timeline_seconds": 896,
+  "timeline_references_exist": true,
+  "all_pngs_decoded": true,
+  "all_videos_played_and_seeked": true,
+  "source_references_checked": [
+    "src/App.tsx",
+    "src/main.tsx",
+    "src/context/AcademicContext.tsx",
+    "src/utils/pdfExtractor.ts",
+    "src/utils/calculations.ts",
+    "src/utils/quiz.ts",
+    "src/utils/academicStorage.ts",
+    "src/components/FocusTimerView.tsx",
+    "src/components/StudyAIView.tsx",
+    "src/components/TasksWidget.tsx",
+    "server.ts",
+    "server/gemini.ts"
+  ],
+  "credentials_included": false,
+  "original_browser_storage_used": false,
+  "app_source_modified_by_capture_task": false,
+  "live_gemini_success": false,
+  "text_pdf_extraction_verified": true,
+  "files": [
+    {
+      "path": "capture-manifest.json",
+      "bytes": 33898,
+      "sha256": "27deda582593152f15062143732f1cae50a0083617159878617cb7547f6936ea"
+    },
+    {
+      "path": "fixtures/extracted-demo-text.txt",
+      "bytes": 1131,
+      "sha256": "b5e16cee22ace757dc5ee3fc344041ca304a5a11eb60becddb7de36dc8057f1b"
+    },
+    {
+      "path": "fixtures/Gradia-Demo-Logic-Gates.pdf",
+      "bytes": 47408,
+      "sha256": "9835e5263f4e0510ba39150b77236b176194d96a98c996803ec9a0338fbc996c"
+    },
+    {
+      "path": "HACKATHON_DEMO.md",
+      "bytes": 11919,
+      "sha256": "19ccf48448a798a1a4d55a8f366a1763949c7603a1c73d1b0d19b19b9b0ee139"
+    },
+    {
+      "path": "image-validation.json",
+      "bytes": 5949,
+      "sha256": "33c050c5555ba64130b97b0c4e809b1777cdd6bda2e99a0365beb28503f80c43"
+    },
+    {
+      "path": "quiz-evidence.json",
+      "bytes": 154,
+      "sha256": "3a53c2eeeb5a9a353191aef632892763974f51dc799adfff7ff73c26f5e165e5"
+    },
+    {
+      "path": "README.md",
+      "bytes": 3326,
+      "sha256": "55dfad7046be8ebde3f299af210bb62dc422eb0445d65ad5dbce9f5c1798f2bd"
+    },
+    {
+      "path": "recordings/01-dashboard-navigation.webm",
+      "bytes": 1949814,
+      "sha256": "f5abba096b590b98cfa84cc2aaefaeba30afba78e4c24f335a4099c784efc8e4"
+    },
+    {
+      "path": "recordings/02-adding-task.webm",
+      "bytes": 1019334,
+      "sha256": "4c2a6d8be332507e1b72031240f4c0b0ace83d0a5e0b87d32b691b901b4d6452"
+    },
+    {
+      "path": "recordings/03-course-management.webm",
+      "bytes": 17085580,
+      "sha256": "42199f03da07bef227845b8b443f6a4b8f9e0fef8fc0f813626990cb876104dd"
+    },
+    {
+      "path": "recordings/04-grade-rescue-simulation.webm",
+      "bytes": 5952246,
+      "sha256": "815f0093d78314a34974118e489c805c570a11d2f6ad72a9baa8ba32da604836"
+    },
+    {
+      "path": "recordings/05-pdf-upload-ai-error.webm",
+      "bytes": 8264328,
+      "sha256": "388c9c273c52d5f07a8545b9f1a9289c3e3af73f986e3525db0a61e5b5348b7e"
+    },
+    {
+      "path": "recordings/06-quiz-and-revision.webm",
+      "bytes": 6787010,
+      "sha256": "cd31b6cb1073de841fd1899a531f39c09d135a0b2e1b6b8fd6a9a3d3113fc451"
+    },
+    {
+      "path": "recordings/07-focus-timer.webm",
+      "bytes": 1831275,
+      "sha256": "d46dbf20878404d8d313bb89e6db9846bdd5bda36c6eb88e02180707f720af03"
+    },
+    {
+      "path": "recordings-manifest.json",
+      "bytes": 1110,
+      "sha256": "f026d8b772ac87e76325d201c8a7a40f8a77a0f7d2217278274f82e59d319be1"
+    },
+    {
+      "path": "request-evidence.json",
+      "bytes": 486,
+      "sha256": "8cbbdc79bb1d7f74f408544b940f5545ac9a1494731e17589bff6986b9448942"
+    },
+    {
+      "path": "SCREENSHOT_INDEX.md",
+      "bytes": 32976,
+      "sha256": "f17a44933ea69b312c74e7dec88021cecd4cb96e22623ef84c99a20058e4aa50"
+    },
+    {
+      "path": "screenshots/01-dashboard-overview.png",
+      "bytes": 671325,
+      "sha256": "f07b86d454452d2d07f542f574ce971a504174e7d7391e18bc45d18406666c69"
+    },
+    {
+      "path": "screenshots/02-personalized-welcome.png",
+      "bytes": 139447,
+      "sha256": "e7f20e7d056056d8fe00a458cf823b5fb3e3b9ea70a9ed0acb7bf8801cc82d5d"
+    },
+    {
+      "path": "screenshots/03-academic-progress-attendance.png",
+      "bytes": 63119,
+      "sha256": "ed0ada8e4f720c643136ad399e46ffd37dc728bedcd9bfb9b148e73da8cbed3a"
+    },
+    {
+      "path": "screenshots/04-example-task.png",
+      "bytes": 18314,
+      "sha256": "02b822f5956ad7e546797953803c6234e2db0982769df312156441ef91f9bfaf"
+    },
+    {
+      "path": "screenshots/05-calendar-navigation.png",
+      "bytes": 32889,
+      "sha256": "b9cf5f2bd37b65b033ce3b1f04f51a8be0b552e096c116a2d31cb338266535db"
+    },
+    {
+      "path": "screenshots/06-dashboard-focus-timer.png",
+      "bytes": 104583,
+      "sha256": "fa68ef514a72e180a3072fbcc1ecb75993398ceddf529c255f3ab44c28ea2fc0"
+    },
+    {
+      "path": "screenshots/07-sidebar-modules.png",
+      "bytes": 47044,
+      "sha256": "7da2ab143a4b44b0623c290f4e66ab376f2a0880828c269fd24b16a8220a37a9"
+    },
+    {
+      "path": "screenshots/08-courses-overview.png",
+      "bytes": 651708,
+      "sha256": "e2ea2d6f49a75e2b1b5806558ec76e2aee1a4404e82297f5b25be6a620bf7e34"
+    },
+    {
+      "path": "screenshots/09-course-details.png",
+      "bytes": 586021,
+      "sha256": "7049e62075365c62743e39e8ac42be29b4b26d5a98207d135eebe489777f259d"
+    },
+    {
+      "path": "screenshots/10-add-course-form.png",
+      "bytes": 572307,
+      "sha256": "c458f2d90008f3ad01f59043e60cfbdb8617b36678739da34b0c91c9a6bef4bf"
+    },
+    {
+      "path": "screenshots/11-attendance-tracking.png",
+      "bytes": 586143,
+      "sha256": "d416f269132c9fd855491dfb8e52e1c9fff05f70f87fe3773cca84e4d7974d2c"
+    },
+    {
+      "path": "screenshots/12-assessment-management.png",
+      "bytes": 583796,
+      "sha256": "4a725ccb20e5f1c44d3bc2b8f148712666dba7bfbd38f103fcc796b7e15f93bc"
+    },
+    {
+      "path": "screenshots/13-course-progress-calculations.png",
+      "bytes": 586173,
+      "sha256": "2d61ea4a525ac57c191cf5250eecf083500c4fdf1f73f9c9583360f582a94583"
+    },
+    {
+      "path": "screenshots/14-grade-rescue-overview.png",
+      "bytes": 857824,
+      "sha256": "e4de3de2a4e930c6185d3c36b29989b43ecac14b86e10ae154bbd0310dee9d70"
+    },
+    {
+      "path": "screenshots/15-grade-prediction-interface.png",
+      "bytes": 681618,
+      "sha256": "6e935aff566785cd724b253851ae14d6723e4c7c6f30d97983ae9260c81aae4e"
+    },
+    {
+      "path": "screenshots/16-example-grade-scenario.png",
+      "bytes": 574214,
+      "sha256": "783e9317d400eed787c699f3a410feb1980edc004ac57e265269b1391d2be3b8"
+    },
+    {
+      "path": "screenshots/17-required-marks-explanation.png",
+      "bytes": 574318,
+      "sha256": "97ee412c035987a8e5e2016e871e2c0e510e0c284fc8237d4e0a229333d9c7af"
+    },
+    {
+      "path": "screenshots/18-study-ai-overview.png",
+      "bytes": 608643,
+      "sha256": "829f3518f0a98d5c324326c5ef147ea27d25364440b29a2353d38866842b6bcf"
+    },
+    {
+      "path": "screenshots/19-document-upload.png",
+      "bytes": 683029,
+      "sha256": "63ccb50f1a0b0eafb4fcf0b77d94862b46ef4a38dd6d7dc20f9b7ea8b85326b4"
+    },
+    {
+      "path": "screenshots/20-pdf-text-extracted.png",
+      "bytes": 695376,
+      "sha256": "bcdeab45c692872365ff7974aebb88636ed365d8539430738a616fff7a29ee6e"
+    },
+    {
+      "path": "screenshots/21-sample-summary.png",
+      "bytes": 794203,
+      "sha256": "6d1c93e3bcd0eb4eda06d44055417b90dee7b2d6d21b6878738351d56104691f"
+    },
+    {
+      "path": "screenshots/22-sample-flashcards.png",
+      "bytes": 743240,
+      "sha256": "16996cb406e0482c8707f2350b99f8f8841945e2d7f399659b53f68fe08b4d53"
+    },
+    {
+      "path": "screenshots/23-sample-quiz-ready.png",
+      "bytes": 739631,
+      "sha256": "7ea28138121f8e2a887ccc32792d8e670b92b8cb17c334865bd016003e3c53de"
+    },
+    {
+      "path": "screenshots/24-answering-sample-quiz.png",
+      "bytes": 515917,
+      "sha256": "c399ec104f36450fc1c42b14e3ddca9de18d6dcb751de305aa05cfb4ffbc8b41"
+    },
+    {
+      "path": "screenshots/25-quiz-results-explanations.png",
+      "bytes": 515354,
+      "sha256": "50b2f24751b448e5838b88b9a341c776dc81959683bff12c553b9cce4ed1bcf0"
+    },
+    {
+      "path": "screenshots/26-weak-topic-workflow.png",
+      "bytes": 655745,
+      "sha256": "a0956b6f5801788c43a2a36d7f06e9c803e7598db29efbb4d1cbda0260a4fe10"
+    },
+    {
+      "path": "screenshots/27-sample-revision-plan.png",
+      "bytes": 746162,
+      "sha256": "84cc0908de1ec72f371b98a764aff2eb21222465c4739907b8f392af61a0b98c"
+    },
+    {
+      "path": "screenshots/28-tutor-question-unavailable.png",
+      "bytes": 749972,
+      "sha256": "9847ddc65346c56d9f5b00d213aad4b1ed3ec37ee457d73bf004edd360d05c0e"
+    },
+    {
+      "path": "screenshots/29-full-focus-timer.png",
+      "bytes": 1053634,
+      "sha256": "6d26335bd9466c563b06312acd488c67822f6b885ab498bc66bef431c7592d0d"
+    },
+    {
+      "path": "screenshots/30-active-study-session.png",
+      "bytes": 1047161,
+      "sha256": "51ff0efa70296ba498a744f8a43be2bc5dce1f68502845254dba5d332a33f06e"
+    },
+    {
+      "path": "screenshots/31-timer-completion-short-break.png",
+      "bytes": 1055438,
+      "sha256": "be33835f635001dd1a4408596774369a97ebfe0a1500f6383bdbb540579b239e"
+    },
+    {
+      "path": "screenshots/32-completed-task.png",
+      "bytes": 18108,
+      "sha256": "c83dadfb7da523805d671af21a64a71c14e1b832717db52900dfd48065212d13"
+    },
+    {
+      "path": "screenshots/33-profile-settings.png",
+      "bytes": 337939,
+      "sha256": "016699aa454c91946bc0ffac017068060e23513aaad7f7f758249ad2bcd52b0f"
+    },
+    {
+      "path": "screenshots/34-maju-grading-policy.png",
+      "bytes": 353535,
+      "sha256": "f403eb20caa3c2220683400bade9dfd9b7ee1db6d2536b04f101025d224e8050"
+    },
+    {
+      "path": "screenshots/35-university-configuration.png",
+      "bytes": 348336,
+      "sha256": "bec235088f72506e313935c3613813a70205b4bc8b02359d5f4e59d1f79945ba"
+    },
+    {
+      "path": "screenshots/36-onboarding.png",
+      "bytes": 774583,
+      "sha256": "526d821c2683419a30b04f20e839832cef5a91bc8a1236041355513e33a2417c"
+    },
+    {
+      "path": "screenshots/37-how-gradia-works.png",
+      "bytes": 371731,
+      "sha256": "786f583eea29e3a282e169e352aedd42ce4efae8a2cadfc65b1577c516bbec2a"
+    },
+    {
+      "path": "screenshots/38-guided-tour.png",
+      "bytes": 667808,
+      "sha256": "3b5325ef3fdfa0c7880a0c2ee086c2508cd3bd9ceab80b673e16de47e5b05ddd"
+    },
+    {
+      "path": "screenshots/39-mobile-dashboard.png",
+      "bytes": 163164,
+      "sha256": "07eea4e1f8cd7c575f795478c38f0b40b547929ae0858de2f9cf87e0fce55c8d"
+    },
+    {
+      "path": "screenshots/40-mobile-navigation.png",
+      "bytes": 146801,
+      "sha256": "3bff21e103bdfc50e77cc90b7a667f1e84c598a1c0299472edb5b470009144c7"
+    },
+    {
+      "path": "screenshots/41-mobile-study-ai.png",
+      "bytes": 258928,
+      "sha256": "1d84d785837dac4d1d37047dce5700c3e4ad1541963188ac5d6fb69abee6b4fb"
+    },
+    {
+      "path": "screenshots/42-mobile-courses.png",
+      "bytes": 217421,
+      "sha256": "646a89be698d982ec7903dead04f86288e5c144c0329c3d178b5e4c54488a6c0"
+    },
+    {
+      "path": "screenshots/43-gemini-summary-unavailable.png",
+      "bytes": 793913,
+      "sha256": "7420e854e8e91ff9e042939402c65fad6edfc06b59215a759ff542d3369b4382"
+    },
+    {
+      "path": "screenshots/44-gemini-flashcards-unavailable.png",
+      "bytes": 792313,
+      "sha256": "6b911fc896f25fded891f479f9deeadfb3b75e0e5f5fa9c7a18e69e88cf1dbca"
+    },
+    {
+      "path": "screenshots/45-gemini-quiz-unavailable.png",
+      "bytes": 793299,
+      "sha256": "cb5a4660300b82ca95f33775a19db56b099b970050ea7ca0fbde7d03673e87bb"
+    },
+    {
+      "path": "screenshots/46-gemini-revision-unavailable.png",
+      "bytes": 796620,
+      "sha256": "40c80a161731fa7e23bb7f606521acd72a71f0c21edc8afffb2855a2975233bd"
+    },
+    {
+      "path": "screenshots/47-sample-flashcard-answer.png",
+      "bytes": 754433,
+      "sha256": "32c8d4951df1a2db3bf2757f2d0294e37148fce794d745dee58eedb2e0651549"
+    },
+    {
+      "path": "screenshots/48-paused-focus-session.png",
+      "bytes": 1052341,
+      "sha256": "eb8ed664e67c73a3e9045fa563938734c9cab6d19352820e47983f5b97a1f466"
+    },
+    {
+      "path": "screenshots/49-light-mode-dashboard.png",
+      "bytes": 650319,
+      "sha256": "6403ed49ee2c8fd14d6fddd83bbbc2f77e4b860b5a138531b63971b3b3bba8a1"
+    },
+    {
+      "path": "screenshots/50-onboarding-profile.png",
+      "bytes": 769891,
+      "sha256": "1f0b1b393266ace67592445b4fc4ef41a9ddba41cc3db40c7cfd5901e34092a1"
+    },
+    {
+      "path": "screenshots/51-onboarding-prior-results.png",
+      "bytes": 769358,
+      "sha256": "40ebc377ebabca17bbf4110a6883e1c8ac47b4c9e94ed21a656403cbfad0940f"
+    },
+    {
+      "path": "screenshots/52-onboarding-courses.png",
+      "bytes": 767434,
+      "sha256": "3ab6f0d1f9cd7e33f6f8cf2e76e01d58ad018fdae898ece0c498286c48dd8174"
+    },
+    {
+      "path": "screenshots/53-onboarding-goal.png",
+      "bytes": 766496,
+      "sha256": "659a8b86c289a598ad2e3c1e6f2db751189d0ee68b7b5687c6343a66aef6c6fb"
+    },
+    {
+      "path": "screenshots/54-empty-personal-dashboard.png",
+      "bytes": 619398,
+      "sha256": "4564b394eced9125920b36d42962985f308c493a38f2020fad164c6291d0e5ea"
+    },
+    {
+      "path": "TECHNICAL_WALKTHROUGH.md",
+      "bytes": 14804,
+      "sha256": "64b60f9cbc3843ee20ddcbade026c0d6dff3ad74faafbc337109cbf7db2c6002"
+    },
+    {
+      "path": "timer-evidence.json",
+      "bytes": 108,
+      "sha256": "a6d7460f30fa4afbf41e03470dc9fae94aab039c481f3e0e5af22b2303add3c1"
+    },
+    {
+      "path": "VERIFICATION.md",
+      "bytes": 5580,
+      "sha256": "6413a5ac12b5f9f1d10d24f9e4a6da3f320dadee6f9e7942379f79a1d36a185d"
+    },
+    {
+      "path": "video-playback-validation.json",
+      "bytes": 750,
+      "sha256": "72729ae9239b59fe202554a090a96a204560f115de31c04044ea252c2c2fa2e4"
+    },
+    {
+      "path": "video-validation.json",
+      "bytes": 1541,
+      "sha256": "87c0272811ee451f445f427c84b064afb29601005199f5427f4c7c553af443f1"
+    },
+    {
+      "path": "VIDEO_SCRIPT.md",
+      "bytes": 23866,
+      "sha256": "c20e5055b41a797d26ab18d882d82025266f9f64287f1851d3b5227993a01d68"
+    },
+    {
+      "path": "video_timeline.json",
+      "bytes": 27070,
+      "sha256": "4446d5f1c7a54b206febaf4d6d76f3f1baa486ec2892cc03ec9242c52a5784ab"
+    }
+  ]
+}

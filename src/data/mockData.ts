@@ -9,11 +9,12 @@ import {
 import { DEFAULT_MAJU_POLICY } from '../utils/calculations';
 
 /**
- * Official academic student profile for Ghunain Fayaz
+ * Explicit demonstration profile (not official student records) for Ghunain Fayaz
  * Mohammad Ali Jinnah University (MAJU) — Faculty of Computing
  * BS Computer Science (Fall 2026)
  */
 export const INITIAL_USER_SETTINGS: UserSettings = {
+  profileMode: 'demo',
   studentName: 'Ghunain Fayaz',
   major: 'BS Computer Science',
   faculty: 'Faculty of Computing',
@@ -24,12 +25,12 @@ export const INITIAL_USER_SETTINGS: UserSettings = {
   targetCgpa: 4.00,
   defaultAttendanceThreshold: 75,
   theme: 'dark',
-  activeModel: 'gemini-3.8-flash',
+  activeModel: '',
   gradingPolicy: DEFAULT_MAJU_POLICY,
 };
 
 /**
- * Real course records for Ghunain Fayaz (Total 17 credits currently in progress):
+ * Confirmed course names/credits and rounded attendance; assessments, dates, rooms and schedules are illustrative sample records for Ghunain Fayaz (Total 17 credits currently in progress):
  * 1. Digital Logic Design (3 cr, 95% attendance)
  * 2. Database Management Systems Lab (1 cr, 100% attendance)
  * 3. Database Management Systems (3 cr, 95% attendance)

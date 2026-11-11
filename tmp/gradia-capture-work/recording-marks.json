@@ -1,0 +1,37 @@
+[
+  {
+    "name": "adding-task",
+    "start": 15.139,
+    "end": 16.862
+  },
+  {
+    "name": "course-management",
+    "start": 16.862,
+    "end": 78.504
+  },
+  {
+    "name": "grade-rescue-simulation",
+    "start": 87.183,
+    "end": 108.523
+  },
+  {
+    "name": "pdf-upload-ai-error",
+    "start": 129.939,
+    "end": 166.488
+  },
+  {
+    "name": "quiz-and-revision",
+    "start": 233.442,
+    "end": 259.981
+  },
+  {
+    "name": "dashboard-navigation",
+    "start": 262.02,
+    "end": 265.929
+  },
+  {
+    "name": "focus-timer",
+    "start": 280.598,
+    "end": 284.849
+  }
+]

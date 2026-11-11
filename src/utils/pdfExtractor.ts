@@ -4,17 +4,6 @@
  * and clear user-facing error reporting.
  */
 
-import * as pdfjsLib from 'pdfjs-dist';
-
-// Configure the worker source from standard CDN matching installed version
-if (typeof window !== 'undefined' && 'Worker' in window) {
-  try {
-    pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
-  } catch (err) {
-    console.warn('PDF.js worker initialization warning:', err);
-  }
-}
-
 export interface ExtractedPdfResult {
   text: string;
   pageCount: number;
@@ -27,9 +16,17 @@ export interface ExtractedPdfResult {
 }
 
 export async function extractTextFromPdf(file: File): Promise<ExtractedPdfResult> {
+  let loadingTask: import('pdfjs-dist').PDFDocumentLoadingTask | undefined;
   try {
+    // Keep browser-only PDF initialization out of the application's startup path.
+    // Vite serves the worker from the same installed package as the PDF API.
+    const [pdfjsLib, { default: workerSrc }] = await Promise.all([
+      import('pdfjs-dist'),
+      import('pdfjs-dist/build/pdf.worker.min.mjs?url'),
+    ]);
+    pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrc;
     const arrayBuffer = await file.arrayBuffer();
-    const loadingTask = pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer) });
+    loadingTask = pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer) });
     const pdfDocument = await loadingTask.promise;
 
     const pageCount = pdfDocument.numPages;
@@ -88,5 +85,9 @@ export async function extractTextFromPdf(file: File): Promise<ExtractedPdfResult
     throw new Error(
       error?.message || 'Could not parse this PDF. Please verify the file is not corrupted or password-protected.'
     );
+  } finally {
+    await loadingTask?.destroy().catch((error) => {
+      console.warn('PDF worker cleanup failed:', error);
+    });
   }
 }

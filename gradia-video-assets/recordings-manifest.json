@@ -1,0 +1,44 @@
+[
+  {
+    "filename": "recordings/01-dashboard-navigation.webm",
+    "feature": "dashboard-navigation",
+    "requestedDurationSeconds": 6.31,
+    "audio": false
+  },
+  {
+    "filename": "recordings/02-adding-task.webm",
+    "feature": "adding-task",
+    "requestedDurationSeconds": 9.32,
+    "audio": false
+  },
+  {
+    "filename": "recordings/03-course-management.webm",
+    "feature": "course-management",
+    "requestedDurationSeconds": 64.04,
+    "audio": false
+  },
+  {
+    "filename": "recordings/04-grade-rescue-simulation.webm",
+    "feature": "grade-rescue-simulation",
+    "requestedDurationSeconds": 23.74,
+    "audio": false
+  },
+  {
+    "filename": "recordings/05-pdf-upload-ai-error.webm",
+    "feature": "pdf-upload-ai-error",
+    "requestedDurationSeconds": 38.95,
+    "audio": false
+  },
+  {
+    "filename": "recordings/06-quiz-and-revision.webm",
+    "feature": "quiz-and-revision",
+    "requestedDurationSeconds": 28.94,
+    "audio": false
+  },
+  {
+    "filename": "recordings/07-focus-timer.webm",
+    "feature": "focus-timer",
+    "requestedDurationSeconds": 6.65,
+    "audio": false
+  }
+]

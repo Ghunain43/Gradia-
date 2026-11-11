@@ -1,0 +1,326 @@
+[
+  {
+    "file": "01-dashboard-overview.png",
+    "width": 1920,
+    "height": 1080,
+    "decoded": true
+  },
+  {
+    "file": "02-personalized-welcome.png",
+    "width": 1018,
+    "height": 322,
+    "decoded": true
+  },
+  {
+    "file": "03-academic-progress-attendance.png",
+    "width": 1017,
+    "height": 369,
+    "decoded": true
+  },
+  {
+    "file": "04-example-task.png",
+    "width": 512,
+    "height": 322,
+    "decoded": true
+  },
+  {
+    "file": "05-calendar-navigation.png",
+    "width": 1016,
+    "height": 81,
+    "decoded": true
+  },
+  {
+    "file": "06-dashboard-focus-timer.png",
+    "width": 512,
+    "height": 371,
+    "decoded": true
+  },
+  {
+    "file": "07-sidebar-modules.png",
+    "width": 80,
+    "height": 1032,
+    "decoded": true
+  },
+  {
+    "file": "08-courses-overview.png",
+    "width": 1920,
+    "height": 1080,
+    "decoded": true
+  },
+  {
+    "file": "09-course-details.png",
+    "width": 1920,
+    "height": 1080,
+    "decoded": true
+  },
+  {
+    "file": "10-add-course-form.png",
+    "width": 1920,
+    "height": 1080,
+    "decoded": true
+  },
+  {
+    "file": "11-attendance-tracking.png",
+    "width": 1920,
+    "height": 1080,
+    "decoded": true
+  },
+  {
+    "file": "12-assessment-management.png",
+    "width": 1920,
+    "height": 1080,
+    "decoded": true
+  },
+  {
+    "file": "13-course-progress-calculations.png",
+    "width": 1920,
+    "height": 1080,
+    "decoded": true
+  },
+  {
+    "file": "14-grade-rescue-overview.png",
+    "width": 1920,
+    "height": 1080,
+    "decoded": true
+  },
+  {
+    "file": "15-grade-prediction-interface.png",
+    "width": 1920,
+    "height": 1080,
+    "decoded": true
+  },
+  {
+    "file": "16-example-grade-scenario.png",
+    "width": 1920,
+    "height": 1080,
+    "decoded": true
+  },
+  {
+    "file": "17-required-marks-explanation.png",
+    "width": 1920,
+    "height": 1080,
+    "decoded": true
+  },
+  {
+    "file": "18-study-ai-overview.png",
+    "width": 1920,
+    "height": 1080,
+    "decoded": true
+  },
+  {
+    "file": "19-document-upload.png",
+    "width": 1920,
+    "height": 1080,
+    "decoded": true
+  },
+  {
+    "file": "20-pdf-text-extracted.png",
+    "width": 1920,
+    "height": 1080,
+    "decoded": true
+  },
+  {
+    "file": "21-sample-summary.png",
+    "width": 1920,
+    "height": 1080,
+    "decoded": true
+  },
+  {
+    "file": "22-sample-flashcards.png",
+    "width": 1920,
+    "height": 1080,
+    "decoded": true
+  },
+  {
+    "file": "23-sample-quiz-ready.png",
+    "width": 1920,
+    "height": 1080,
+    "decoded": true
+  },
+  {
+    "file": "24-answering-sample-quiz.png",
+    "width": 1920,
+    "height": 1080,
+    "decoded": true
+  },
+  {
+    "file": "25-quiz-results-explanations.png",
+    "width": 1920,
+    "height": 1080,
+    "decoded": true
+  },
+  {
+    "file": "26-weak-topic-workflow.png",
+    "width": 1920,
+    "height": 1080,
+    "decoded": true
+  },
+  {
+    "file": "27-sample-revision-plan.png",
+    "width": 1920,
+    "height": 1080,
+    "decoded": true
+  },
+  {
+    "file": "28-tutor-question-unavailable.png",
+    "width": 1920,
+    "height": 1080,
+    "decoded": true
+  },
+  {
+    "file": "29-full-focus-timer.png",
+    "width": 1920,
+    "height": 1080,
+    "decoded": true
+  },
+  {
+    "file": "30-active-study-session.png",
+    "width": 1920,
+    "height": 1080,
+    "decoded": true
+  },
+  {
+    "file": "31-timer-completion-short-break.png",
+    "width": 1920,
+    "height": 1080,
+    "decoded": true
+  },
+  {
+    "file": "32-completed-task.png",
+    "width": 512,
+    "height": 322,
+    "decoded": true
+  },
+  {
+    "file": "33-profile-settings.png",
+    "width": 1920,
+    "height": 1080,
+    "decoded": true
+  },
+  {
+    "file": "34-maju-grading-policy.png",
+    "width": 1920,
+    "height": 1080,
+    "decoded": true
+  },
+  {
+    "file": "35-university-configuration.png",
+    "width": 1920,
+    "height": 1080,
+    "decoded": true
+  },
+  {
+    "file": "36-onboarding.png",
+    "width": 1920,
+    "height": 1080,
+    "decoded": true
+  },
+  {
+    "file": "37-how-gradia-works.png",
+    "width": 1920,
+    "height": 1080,
+    "decoded": true
+  },
+  {
+    "file": "38-guided-tour.png",
+    "width": 1920,
+    "height": 1080,
+    "decoded": true
+  },
+  {
+    "file": "39-mobile-dashboard.png",
+    "width": 390,
+    "height": 844,
+    "decoded": true
+  },
+  {
+    "file": "40-mobile-navigation.png",
+    "width": 390,
+    "height": 844,
+    "decoded": true
+  },
+  {
+    "file": "41-mobile-study-ai.png",
+    "width": 390,
+    "height": 844,
+    "decoded": true
+  },
+  {
+    "file": "42-mobile-courses.png",
+    "width": 390,
+    "height": 844,
+    "decoded": true
+  },
+  {
+    "file": "43-gemini-summary-unavailable.png",
+    "width": 1920,
+    "height": 1080,
+    "decoded": true
+  },
+  {
+    "file": "44-gemini-flashcards-unavailable.png",
+    "width": 1920,
+    "height": 1080,
+    "decoded": true
+  },
+  {
+    "file": "45-gemini-quiz-unavailable.png",
+    "width": 1920,
+    "height": 1080,
+    "decoded": true
+  },
+  {
+    "file": "46-gemini-revision-unavailable.png",
+    "width": 1920,
+    "height": 1080,
+    "decoded": true
+  },
+  {
+    "file": "47-sample-flashcard-answer.png",
+    "width": 1920,
+    "height": 1080,
+    "decoded": true
+  },
+  {
+    "file": "48-paused-focus-session.png",
+    "width": 1920,
+    "height": 1080,
+    "decoded": true
+  },
+  {
+    "file": "49-light-mode-dashboard.png",
+    "width": 1920,
+    "height": 1080,
+    "decoded": true
+  },
+  {
+    "file": "50-onboarding-profile.png",
+    "width": 1920,
+    "height": 1080,
+    "decoded": true
+  },
+  {
+    "file": "51-onboarding-prior-results.png",
+    "width": 1920,
+    "height": 1080,
+    "decoded": true
+  },
+  {
+    "file": "52-onboarding-courses.png",
+    "width": 1920,
+    "height": 1080,
+    "decoded": true
+  },
+  {
+    "file": "53-onboarding-goal.png",
+    "width": 1920,
+    "height": 1080,
+    "decoded": true
+  },
+  {
+    "file": "54-empty-personal-dashboard.png",
+    "width": 1920,
+    "height": 1080,
+    "decoded": true
+  }
+]
